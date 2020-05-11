@@ -1,0 +1,147 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat:500,400');
+
+body * {
+    font-family: 'Montserrat', sans-serif;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+/* HEADER */
+.control-bar {
+    height: 32px;
+    font-size: 19px;
+    padding: 0 0 0 8px;
+    display: grid;
+    grid-template-columns: auto 1fr 32px 32px 32px;
+    background-color: #0d0d0d;
+    -webkit-app-region: drag;
+    align-items: center;
+}
+
+/* title */
+.control-bar>strong {
+    -webkit-app-region: drag;
+    color: pink;
+    font-weight: 400;
+}
+
+.control-bar>strong>span {
+    color: white;
+    font-weight: 500;
+}
+
+/* control buttons */
+.control-bar>span {
+    padding: 7px;
+    cursor: pointer;
+}
+
+.control-bar>span:hover {
+    background-color: #222;
+}
+
+.settings-window {
+    grid-column: 3;
+    -webkit-app-region: no-drag;
+    stroke: #707070;
+    fill: #707070;
+}
+
+.minimize-window {
+    grid-column: 4;
+    -webkit-app-region: no-drag;
+    stroke: #707070;
+    stroke-width: 5;
+}
+
+.close-window {
+    grid-column: 5;
+    -webkit-app-region: no-drag;
+    stroke: #707070;
+    stroke-width: 5;
+}
+
+
+
+
+.stream-tile-container {
+    grid-row: 2/3;
+    height: 450px;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    color: white;
+    padding: 10px;
+    background-color: #1a1a1a;
+    margin-right: 5px;
+}
+
+#placeholder {
+    display: none;
+}
+
+.stream-tiles {
+    display: grid;
+    padding-left: 5px;
+}
+
+.stream-tiles>li {
+    display: grid;
+    grid-template-columns: 50px 86px auto 50px;
+    font-family: 'Montserrat', sans-serif;
+    list-style: none;
+    margin-bottom: 6px;
+    padding: 5px 9px 5px 5px;
+    background-color: #4d4d4d;
+    color: white;
+    border-radius: 5px;
+}
+
+.thumbnail {
+    width: 60px;
+    height: 60px;
+    border-radius: 30px;
+    grid-column: 2;
+}
+
+.stream-name {
+    padding-top: 20px;
+}
+
+.stream-name-text {
+    font-weight: 500;
+    float: left;
+    cursor: pointer;
+}
+
+.stream-name-text:hover {
+    color: #ff8000;
+    font-weight: bold;
+}
+
+/* Add Stream Button */
+.add-btn-container {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    text-align: center;
+}
+
+button.add-stream {
+    background-color: #ff8000;
+    border: none;
+    width: 75px;
+    height: 40px;
+    font-size: 2em;
+    padding: 0px 0px 0px 0px;
+    border-radius: 90px;
+    outline: none;
+    transition: 0.15s ease-in-out;
+}
+
+
+button.add-stream:hover {
+    background-color: #994d00;
+    transform: scale(1.03) translate(0, -1px);
+}

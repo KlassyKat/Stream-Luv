@@ -1,0 +1,35 @@
+{
+  "name": "stream-luv",
+  "version": "1.0.0",
+  "description": "Application for auto opening your favorite streams and giving support... automagically",
+  "main": "main.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KlassyKat/Stream-Luv.git"
+  },
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "com.streamluv.tracker",
+    "productName": "Stream Luv",
+    "win": {
+      "target": "nsis",
+      "icon": "./buildResources/icon2.png",
+      "publish": "github"
+    }
+  },
+  "author": "Gabe Alexander",
+  "license": "ISC",
+  "devDependencies": {
+    "browser-sync": "^2.26.7",
+    "electron": "^8.2.5"
+  },
+  "dependencies": {
+    "axios": "^0.19.2",
+    "electron-window-state": "^5.0.3",
+    "node-localstorage": "^2.1.6"
+  }
+}

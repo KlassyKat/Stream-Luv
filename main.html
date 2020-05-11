@@ -1,0 +1,241 @@
+<link rel="stylesheet" href="./styles/main.css">
+<link rel="stylesheet" href="./styles/switch.css">
+<link rel="stylesheet" href="./styles/live-indicator.css">
+<link rel="stylesheet" href="./styles/scroll.css">
+
+<body>
+    <nav class="control-bar">
+        <strong><span>Stream</span>Luv</strong>
+        <span onclick="settingsWindow()" class="settings-window">
+            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M32,16v-4l-4.781-1.992c-0.133-0.375-0.273-0.738-0.445-1.094l1.93-4.805L25.875,3.25   l-4.762,1.961c-0.363-0.176-0.734-0.324-1.117-0.461L17.969,0h-4l-1.977,4.734c-0.398,0.141-0.781,0.289-1.16,0.469l-4.754-1.91   L3.25,6.121l1.938,4.711C5,11.219,4.848,11.613,4.703,12.02L0,14.031v4l4.707,1.961c0.145,0.406,0.301,0.801,0.488,1.188   l-1.902,4.742l2.828,2.828l4.723-1.945c0.379,0.18,0.766,0.324,1.164,0.461L14.031,32h4l1.98-4.758   c0.379-0.141,0.754-0.289,1.113-0.461l4.797,1.922l2.828-2.828l-1.969-4.773c0.168-0.359,0.305-0.723,0.438-1.094L32,17.969z    M15.969,22c-3.312,0-6-2.688-6-6s2.688-6,6-6s6,2.688,6,6S19.281,22,15.969,22z" />
+            </svg>
+        </span>
+        <span onclick="minimizeWindow()" class="minimize-window">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+                <line x1="0" y1="17" x2="32" y2="17" />
+            </svg>
+        </span>
+        <span onclick="closeWindow()" class="close-window">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+                <line x1="2" y1="2" x2="30" y2="30" />
+                <line x1="2" y1="30" x2="30" y2="2" />
+            </svg>
+        </span>
+    </nav>
+
+    <div class="stream-tile-container">
+        <ul class="stream-tiles" id="tile-wrapper">
+            <li class="stream-item" id="placeholder">
+                <div class="stream-toggle">
+                    <label class="switch">
+                        <input type="checkbox"
+                            onclick="toggleAutoOpen(this.parentElement.parentElement.parentElement.id, this.checked)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <img src="#" alt="stream icon" class="thumbnail">
+                <div class="stream-name">
+                    <span onclick="streamLink(this.parentElement.parentElement.id)" class="stream-name-text">
+                    </span>
+                </div>
+                <div class="live-container">
+                    <div class="live-indicator"></div>
+                    <h4 class="live"></h4>
+                </div>
+            </li>
+        </ul>
+
+        <div class="add-btn-container">
+            <button class="add-stream" onclick="addStream()">+</button>
+        </div>
+    </div>
+</body>
+
+<script>
+    //All off switch?
+    //Run on startup
+    //Probably make tiles reamin through API errors (API ERROR message?)
+    //Consolidate info and live call into one request?
+    //Drop down with live content z-index opacity absolute pos translate down
+    //Uptime?
+    //Category?
+    //Viewers?
+    //Stream title
+    //add delete tile
+    //Advertised Streamer?
+    //Info page when no tiles
+    //Add remove and priority to drop down
+
+    const axios = require('axios');
+    const {
+        ipcRenderer,
+        shell
+    } = require('electron');
+    const {
+        APP_TOKEN
+    } = require('./secret.js');
+
+    let streamers = JSON.parse(localStorage.getItem('streamers'));
+    let tileWrapper = document.getElementById('tile-wrapper');
+    let streamTile = document.getElementById('placeholder');
+
+    let liveWatchOn = true;
+    let streamWatcher;
+
+    function watchStreams() {
+        if (liveWatchOn) {
+            streamWatcher = setTimeout(liveCheck, 90000);
+        }
+    }
+
+    loadStreamers();
+
+    async function loadStreamers() {
+        axios.defaults.headers.common['Client-ID'] = APP_TOKEN;
+        for (let streamer in streamers) {
+            streamer = streamers[streamer];
+            try {
+                let response = await axios.get('https://api.twitch.tv/helix/users?login=' + streamer.name);
+                response = response.data.data[0];
+                if(response == undefined) {
+                    delete streamers[streamer];
+                }
+                console.log(response);
+                checkTiles(response);
+            } catch (err) {
+                console.log(err);
+            }
+        }
+    }
+
+    function checkTiles(payload) {
+        let tileList = createTileArray('id');
+        let checkList = tileList.filter(id => id == payload.login)
+        if (checkList.length < 1) {
+            createTile(payload);
+        }
+    }
+
+    function createTile(payload) {
+        let newTile = streamTile.cloneNode(true);
+        newTile.id = payload.login;
+        newTile.children[1].src = payload.profile_image_url;
+        newTile.children[0].children[0].children[0].checked = streamers[payload.login].autoopen;
+        let streamName = document.createTextNode(payload.display_name);
+        newTile.children[2].children[0].appendChild(streamName);
+        streamTile.parentElement.lastChild.after(newTile);
+        liveCheck();
+    }
+
+
+    // Window Handeling
+    function addStream() {
+        ipcRenderer.send("open-stream-window")
+    }
+
+    function streamLink(streamLinkId) {
+        let linkURL = "https://www.twitch.tv/" + streamLinkId;
+        shell.openExternal(linkURL);
+    }
+
+    function toggleAutoOpen(streamId, value) {
+        //TODO Change switch state based json value
+        streamers[streamId].autoopen = value;
+        localStorage.setItem('streamers', JSON.stringify(streamers));
+    }
+
+    function setSwitchState() {
+        return;
+    }
+
+    async function liveCheck() {
+        let liveStreams = [];
+        for (let streamer in streamers) {
+            streamer = streamers[streamer];
+            try {
+                let response = await axios.get('https://api.twitch.tv/helix/streams?user_login=' + streamer.name);
+                response = response.data.data[0];
+                let cleanedName = response.user_name.toLowerCase().replace(/ /g, '');
+                liveStreams.push(cleanedName);
+            } catch (err) {
+                console.log(err);
+            }
+        }
+        setLiveState(liveStreams);
+    }
+
+    function setLiveState(liveStreams) {
+        let streamElements = createTileArray('element');
+        let checkedStreams = streamElements.filter(element => liveStreams.includes(element.id)); //try?
+        for (element of streamElements) {
+            if (checkedStreams.includes(element) && streamers[element.id].autoopen) { //Live and auto open on
+                shell.openExternal("https://www.twitch.tv/" + element.id);
+                element.children[3].children[0].classList.add('live-indicator_on');
+                element.children[3].children[1].classList.remove('live-state_off');
+                element.children[3].children[1].classList.add('live-state_on');
+                element.children[3].children[1].classList.add('live_on');
+                try {
+                    streamers[element.id].live = true;
+                } catch (err) {
+                    console.log(err);
+                }
+            } else if (checkedStreams.includes(element)) { //Live
+                element.children[3].children[0].classList.add('live-indicator_on');
+                element.children[3].children[1].classList.remove('live-state_off');
+                element.children[3].children[1].classList.add('live-state_on');
+                element.children[3].children[1].classList.add('live_on');
+                try {
+                    streamers[element.id].live = true;
+                } catch (err) {
+                    console.log(err);
+                }
+            } else { //Offline
+                element.children[3].children[0].classList.remove('live-indicator_on');
+                element.children[3].children[1].classList.add('live-state_off');
+                element.children[3].children[1].classList.remove('live-state_on');
+                element.children[3].children[1].classList.remove('live_on');
+                try {
+                    streamers[element.id].live = false;
+                } catch (err) {
+                    console.log(err);
+                }
+            }
+        }
+        localStorage.setItem('streamers', JSON.stringify(streamers));
+        clearTimeout(streamWatcher);
+        watchStreams();
+    }
+
+    function createTileArray(type) {
+        let tileList = [];
+        for (let item of tileWrapper.children) {
+            if (type == 'id') {
+                tileList.push(item.id);
+            } else if (type == 'element') {
+                tileList.push(item)
+            }
+        }
+        return tileList;
+    }
+
+    function openSettings() {
+        return
+    }
+
+    function minimizeWindow() {
+        ipcRenderer.send("minimize-window");
+    }
+
+    function closeWindow() {
+        // localStorage.setItem('streamers', streamers);
+        //Set all stream open attributes to false
+        ipcRenderer.send("close-main-window");
+    }
+
+    ipcRenderer.on('load-streams', function () {
+        streamers = JSON.parse(localStorage.getItem('streamers'));
+        loadStreamers();
+    })
+</script>
