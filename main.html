@@ -2,6 +2,7 @@
 <link rel="stylesheet" href="./styles/switch.css">
 <link rel="stylesheet" href="./styles/live-indicator.css">
 <link rel="stylesheet" href="./styles/scroll.css">
+<link rel="stylesheet" href="./styles/draggable.css">
 
 <body>
     <nav class="control-bar">
@@ -27,7 +28,7 @@
 
     <div class="stream-tile-container">
         <ul class="stream-tiles" id="tile-wrapper">
-            <li class="stream-item" id="placeholder">
+            <li class="stream-item draggable" id="placeholder" draggable="true">
                 <div class="stream-toggle">
                     <label class="switch">
                         <input type="checkbox"
@@ -66,7 +67,7 @@
     //add delete tile
     //Advertised Streamer?
     //Info page when no tiles
-    //Add remove and priority to drop down
+    //Add remove and priority to drop down?
 
     const axios = require('axios');
     const {
@@ -74,8 +75,10 @@
         shell
     } = require('electron');
     const {
-        APP_TOKEN
+        APP_TOKEN,
+        AUTH_TOKEN
     } = require('./secret.js');
+    const { setDraggables } = require('./draggable.js');
 
     let streamers = JSON.parse(localStorage.getItem('streamers'));
     let tileWrapper = document.getElementById('tile-wrapper');
@@ -83,10 +86,12 @@
 
     let liveWatchOn = true;
     let streamWatcher;
+    let pingRate = 90 //in seconds
+    //TODO make ping rate based on number of streams
 
     function watchStreams() {
         if (liveWatchOn) {
-            streamWatcher = setTimeout(liveCheck, 90000);
+            streamWatcher = setTimeout(liveCheck, pingRate * 1000);
         }
     }
 
@@ -94,6 +99,7 @@
 
     async function loadStreamers() {
         axios.defaults.headers.common['Client-ID'] = APP_TOKEN;
+        axios.defaults.headers.common['Authorization'] = `Bearer ${AUTH_TOKEN}`;
         for (let streamer in streamers) {
             streamer = streamers[streamer];
             try {
@@ -108,6 +114,7 @@
                 console.log(err);
             }
         }
+        setDraggables();
     }
 
     function checkTiles(payload) {
@@ -170,7 +177,7 @@
         let streamElements = createTileArray('element');
         let checkedStreams = streamElements.filter(element => liveStreams.includes(element.id)); //try?
         for (element of streamElements) {
-            if (checkedStreams.includes(element) && streamers[element.id].autoopen) { //Live and auto open on
+            if (checkedStreams.includes(element) && streamers[element.id].autoopen && !streamers[element.id].streamopen) { //Live and auto open on
                 shell.openExternal("https://www.twitch.tv/" + element.id);
                 element.children[3].children[0].classList.add('live-indicator_on');
                 element.children[3].children[1].classList.remove('live-state_off');
@@ -178,6 +185,7 @@
                 element.children[3].children[1].classList.add('live_on');
                 try {
                     streamers[element.id].live = true;
+                    streamers[element.id].streamopen = true;
                 } catch (err) {
                     console.log(err);
                 }
@@ -198,6 +206,7 @@
                 element.children[3].children[1].classList.remove('live_on');
                 try {
                     streamers[element.id].live = false;
+                    streamers[element.id].streamopen = false;
                 } catch (err) {
                     console.log(err);
                 }
