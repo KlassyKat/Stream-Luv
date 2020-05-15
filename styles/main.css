@@ -64,9 +64,6 @@ body {
     stroke-width: 5;
 }
 
-
-
-
 .stream-tile-container {
     grid-row: 2/3;
     height: 450px;
@@ -78,7 +75,7 @@ body {
     margin-right: 5px;
 }
 
-#placeholder {
+#place-holder {
     display: none;
 }
 
@@ -111,6 +108,9 @@ body {
 }
 
 .stream-name-text {
+    overflow-x: hidden;
+    width: auto;
+    text-overflow: ellipsis;
     font-weight: 500;
     float: left;
     cursor: pointer;

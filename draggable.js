@@ -1,47 +1,6 @@
-// const draggables = document.querySelectorAll('.draggable')
-// const containers = document.querySelectorAll('#tile-wrapper');
-
-// draggables.forEach(draggable => {
-//   draggable.addEventListener('dragstart', () => {
-//     draggable.classList.add('dragging')
-//   });
-
-//   draggable.addEventListener('dragend', () => {
-//     draggable.classList.remove('dragging')
-//   })
-// })
-
-// containers.forEach(container => {
-//   container.addEventListener('dragover', e => {
-//     e.preventDefault()
-//     const afterElement = getDragAfterElement(container, e.clientY)
-//     const draggable = document.querySelector('.dragging')
-//     if (afterElement == null) {
-//       container.appendChild(draggable)
-//     } else {
-//       container.insertBefore(draggable, afterElement)
-//     }
-//   })
-// })
-
-// function getDragAfterElement(container, y) {
-//   const draggableElements = [...container.querySelectorAll('.draggable:not(.dragging)')]
-
-//   return draggableElements.reduce((closest, child) => {
-//     const box = child.getBoundingClientRect()
-//     const offset = y - box.top - box.height / 2
-//     if (offset < 0 && offset > closest.offset) {
-//       return { offset: offset, element: child }
-//     } else {
-//       return closest
-//     }
-//   }, { offset: Number.NEGATIVE_INFINITY }).element
-// }
 function setDraggables() {
     const draggables = document.querySelectorAll('.draggable');
     const container = document.getElementById('tile-wrapper');
-
-    console.log(draggables);
 
     draggables.forEach(draggable => {
         draggable.addEventListener('dragstart', () => {
@@ -50,6 +9,7 @@ function setDraggables() {
 
         draggable.addEventListener('dragend', () => {
             draggable.classList.remove('dragging');
+            sortStreamers();
         });
     });
 
@@ -70,8 +30,7 @@ function setDraggables() {
 
         return draggableElements.reduce((closest, child) => {
             const box = child.getBoundingClientRect();
-            const offset = y - box.top - box.height / 2;
-            console.log(offset);
+            const offset = y - box.top - box.height / 1.6;
             if (offset < 0 && offset > closest.offset) {
                 return {
                     offset: offset,
@@ -83,6 +42,19 @@ function setDraggables() {
         }, {
             offset: Number.NEGATIVE_INFINITY
         }).element;
+    }
+
+    function sortStreamers() {
+        let streamOrderElements = [...document.querySelectorAll('.stream-item')];
+        let streamOrder = {};
+        for(element of streamOrderElements) {
+            if(streamers[element.id]) {
+                streamOrder[element.id] = (streamers[element.id]);
+            }
+            console.log(streamOrder)
+        }
+        localStorage.setItem('streamers', JSON.stringify(streamOrder));
+        streamers = JSON.parse(localStorage.getItem('streamers'));
     }
 }
 

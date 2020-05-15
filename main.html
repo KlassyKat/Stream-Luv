@@ -28,7 +28,7 @@
 
     <div class="stream-tile-container">
         <ul class="stream-tiles" id="tile-wrapper">
-            <li class="stream-item draggable" id="placeholder" draggable="true">
+            <li class="stream-item draggable" id="place-holder" draggable="true">
                 <div class="stream-toggle">
                     <label class="switch">
                         <input type="checkbox"
@@ -55,34 +55,28 @@
 </body>
 
 <script>
-    //All off switch?
-    //Run on startup
-    //Probably make tiles reamin through API errors (API ERROR message?)
-    //Consolidate info and live call into one request?
-    //Drop down with live content z-index opacity absolute pos translate down
-    //Uptime?
-    //Category?
-    //Viewers?
-    //Stream title
-    //add delete tile
-    //Advertised Streamer?
-    //Info page when no tiles
-    //Add remove and priority to drop down?
-
     const axios = require('axios');
     const {
         ipcRenderer,
-        shell
+        shell,
+        remote
     } = require('electron');
+    const {
+        Menu,
+        MenuItem
+    } = remote;
     const {
         APP_TOKEN,
         AUTH_TOKEN
     } = require('./secret.js');
-    const { setDraggables } = require('./draggable.js');
+    const {
+        setDraggables
+    } = require('./draggable.js');
 
     let streamers = JSON.parse(localStorage.getItem('streamers'));
     let tileWrapper = document.getElementById('tile-wrapper');
-    let streamTile = document.getElementById('placeholder');
+    let streamTile = document.getElementById('place-holder');
+    let streamElements = createTileArray('element');
 
     let liveWatchOn = true;
     let streamWatcher;
@@ -105,7 +99,7 @@
             try {
                 let response = await axios.get('https://api.twitch.tv/helix/users?login=' + streamer.name);
                 response = response.data.data[0];
-                if(response == undefined) {
+                if (response == undefined) {
                     delete streamers[streamer];
                 }
                 console.log(response);
@@ -133,6 +127,8 @@
         let streamName = document.createTextNode(payload.display_name);
         newTile.children[2].children[0].appendChild(streamName);
         streamTile.parentElement.lastChild.after(newTile);
+        streamElements = createTileArray('element');
+        addEventListeners(streamElements);
         liveCheck();
     }
 
@@ -174,10 +170,11 @@
     }
 
     function setLiveState(liveStreams) {
-        let streamElements = createTileArray('element');
+        streamElements = createTileArray('element');
         let checkedStreams = streamElements.filter(element => liveStreams.includes(element.id)); //try?
         for (element of streamElements) {
-            if (checkedStreams.includes(element) && streamers[element.id].autoopen && !streamers[element.id].streamopen) { //Live and auto open on
+            if (checkedStreams.includes(element) && streamers[element.id].autoopen && !streamers[element.id]
+                .streamopen) { //Live and auto open on
                 shell.openExternal("https://www.twitch.tv/" + element.id);
                 element.children[3].children[0].classList.add('live-indicator_on');
                 element.children[3].children[1].classList.remove('live-state_off');
@@ -247,4 +244,31 @@
         streamers = JSON.parse(localStorage.getItem('streamers'));
         loadStreamers();
     })
+
+
+    //Right Click Menu
+    let elementClick;
+    const menu = new Menu()
+    menu.append(new MenuItem({
+        label: 'Remove',
+        click() {
+            elementClick.parentNode.removeChild(elementClick);
+            streamers = JSON.parse(localStorage.getItem('streamers'));
+            delete streamers[elementClick.id];
+            localStorage.setItem('streamers', JSON.stringify(streamers));
+        }
+    }))
+
+
+    function addEventListeners(elements) {
+        for (element of elements) {
+            element.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                elementClick = e.target.parentElement;
+                menu.popup({
+                    window: remote.getCurrentWindow()
+                })
+            })
+        }
+    }
 </script>

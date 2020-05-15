@@ -1,8 +1,8 @@
 .draggable {
     border: 1px solid black;
-    cursor: move;
+    cursor: grab;
   }
   
   .draggable.dragging {
-    opacity: .5;
+    opacity: 0.5;
   }

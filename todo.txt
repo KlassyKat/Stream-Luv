@@ -1,0 +1,28 @@
+    []All off switch?
+
+    []Run on startup
+
+    []Probably make tiles reamin through API errors (API ERROR message?)
+
+    []Consolidate info and live call into one request?
+
+    []Drop down with live content z-index opacity absolute pos translate down
+
+    []Uptime?
+
+    []Category?
+
+    []Viewers?
+
+    []Stream title
+
+    [x]add delete tile
+        [x] sort localstorage
+
+    []Advertised Streamer?
+
+    []Info page when no tiles
+
+    []Add remove and priority to drop down?
+
+    []Get rid of not allowed in drag

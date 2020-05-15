@@ -38,6 +38,7 @@ app.on('ready', function () {
         backgroundColor: '#212121',
         icon: './buildResources/icon2.ico'
     });
+    mainWindow.setResizable(false); //Workaround
     mainWindow.loadFile(`${__dirname}/main.html`);
 
     //Listen to window state
@@ -84,7 +85,7 @@ ipcMain.on('open-stream-window', function () {
         show: false,
         resizable: false,
     });
-
+    mainWindow.setResizable(false); //Workaround
     addStreamWindow.loadFile(`${__dirname}/addStreamWindow.html`);
     addStreamWindow.on('ready-to-show', function () {
         addStreamWindow.show();
