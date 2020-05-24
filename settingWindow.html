@@ -1,0 +1,124 @@
+<link rel="stylesheet" href="./styles/settingsSwitch.css">
+
+<body onkeypress="submitEnter(event)" onkeyup="submitEnter(event)">
+    <div class="container">
+        <header>
+            Settings
+        </header>
+        <div class="support-wrapper">
+            <ul class="support-list">
+                <li class="support-me-item">heart</li>
+                <li class="help-item">?</li>
+            </ul>
+        </div>
+        <div class="menuItems">
+            <div class="setting-item">
+                <div class="stream-toggle">
+                    <label class="switch">
+                        <input type="checkbox"
+                            onclick="setting()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <footer>
+            <button class="submit" onclick="applySettings()">Apply</button>
+            <button class="cancel" onclick="closeWindow()">Cancel</button>
+        </footer>
+    </div>
+</body>
+
+<script>
+    const {
+        ipcRenderer
+    } = require('electron');
+
+    let streamInput = document.querySelector(".url-input");
+    let streams = JSON.parse(localStorage.getItem('streamers')) || {};
+
+    function closeWindow() {
+        ipcRenderer.send("close-setting-window");
+    }
+
+
+
+    //Key shortcuts
+    function submitEnter(e) {
+        if (e.keyCode == 13) { //Enter Key
+            applySettings();
+        } else if (e.keyCode == 27) { //Esc Key
+            closeWindow();
+        }
+    }
+</script>
+
+
+<style>
+    @import url('https://fonts.googleapis.com/css?family=Montserrat:500,400');
+
+    body * {
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        width: 100%;
+        height: 100%;
+        background-color: #1c1c1c;
+        display: grid;
+        grid-template-rows: 29px 2fr 1fr;
+    }
+
+    header {
+        background-color: #0d0d0d;
+        padding: 3px 6px;
+        color: white;
+        display: flex;
+        align-items: center;
+        -webkit-app-region: drag;
+    }
+
+    .menuItems {
+        display: flex;
+        color: white;
+        justify-content: center;
+        align-items: center;
+        background-color: #1c1c1c;
+    }
+
+    footer {
+        display: grid;
+        grid-template-columns: auto 70px 15px 70px auto;
+        text-align: center;
+        background-color: #1c1c1c;
+    }
+
+    button {
+        font-family: 'Montserrat', sans-serif;
+        height: 23px;
+        background-color: #ff8000;
+        border: none;
+        border-radius: 10px;
+        font-weight: 500;
+        font-size: 15px;
+        outline: none;
+    }
+
+    button.submit {
+        grid-column: 2/3;
+    }
+
+    button.cancel {
+        grid-column: 4/5;
+    }
+
+    button:hover {
+        background-color: #994d00;
+        transform: scale(1.035) translate(0, 0);
+    }
+</style>

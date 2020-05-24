@@ -7,7 +7,7 @@
 <body>
     <nav class="control-bar">
         <strong><span>Stream</span>Luv</strong>
-        <span onclick="settingsWindow()" class="settings-window">
+        <span onclick="openSettings()" class="settings-window">
             <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
                 <path
                     d="M32,16v-4l-4.781-1.992c-0.133-0.375-0.273-0.738-0.445-1.094l1.93-4.805L25.875,3.25   l-4.762,1.961c-0.363-0.176-0.734-0.324-1.117-0.461L17.969,0h-4l-1.977,4.734c-0.398,0.141-0.781,0.289-1.16,0.469l-4.754-1.91   L3.25,6.121l1.938,4.711C5,11.219,4.848,11.613,4.703,12.02L0,14.031v4l4.707,1.961c0.145,0.406,0.301,0.801,0.488,1.188   l-1.902,4.742l2.828,2.828l4.723-1.945c0.379,0.18,0.766,0.324,1.164,0.461L14.031,32h4l1.98-4.758   c0.379-0.141,0.754-0.289,1.113-0.461l4.797,1.922l2.828-2.828l-1.969-4.773c0.168-0.359,0.305-0.723,0.438-1.094L32,17.969z    M15.969,22c-3.312,0-6-2.688-6-6s2.688-6,6-6s6,2.688,6,6S19.281,22,15.969,22z" />
@@ -28,7 +28,7 @@
 
     <div class="stream-tile-container">
         <ul class="stream-tiles" id="tile-wrapper">
-            <li class="stream-item draggable" id="place-holder" draggable="true">
+            <li class="stream-item draggable" id="place-holder">
                 <div class="stream-toggle">
                     <label class="switch">
                         <input type="checkbox"
@@ -160,6 +160,7 @@
             try {
                 let response = await axios.get('https://api.twitch.tv/helix/streams?user_login=' + streamer.name);
                 response = response.data.data[0];
+                console.log(response);
                 let cleanedName = response.user_name.toLowerCase().replace(/ /g, '');
                 liveStreams.push(cleanedName);
             } catch (err) {
@@ -227,7 +228,7 @@
     }
 
     function openSettings() {
-        return
+        ipcRenderer.send('open-setting-window');
     }
 
     function minimizeWindow() {

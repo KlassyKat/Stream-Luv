@@ -10,6 +10,7 @@ const windowStateKeeper = require('electron-window-state');
 
 let mainWindow;
 let addStreamWindow;
+let settingWindow;
 let mainWindowState;
 
 const iconPath = `${__dirname}/buildResources/icon2.ico`;
@@ -85,7 +86,7 @@ ipcMain.on('open-stream-window', function () {
         show: false,
         resizable: false,
     });
-    mainWindow.setResizable(false); //Workaround
+    addStreamWindow.setResizable(false); //Workaround
     addStreamWindow.loadFile(`${__dirname}/addStreamWindow.html`);
     addStreamWindow.on('ready-to-show', function () {
         addStreamWindow.show();
@@ -96,9 +97,37 @@ ipcMain.on('open-stream-window', function () {
     })
 })
 
+//Open add stetting window
+ipcMain.on('open-setting-window', function () {
+    settingWindow = new BrowserWindow({
+        webPreferences: {
+            nodeIntegration: true
+        },
+        modal: true,
+        x: mainWindowState.x - 25,
+        y: mainWindowState.y + 50,
+        width: 500,
+        height: 600,
+        backgroundColor: "#1c1c1c",
+        frame: false,
+        alwaysOnTop: true,
+        parent: mainWindow,
+        show: false
+    });
+    settingWindow.setResizable(false); //Workaround
+    settingWindow.loadFile(`${__dirname}/settingWindow.html`);
+    settingWindow.on('ready-to-show', function () {
+        settingWindow.show();
+    });
+
+    settingWindow.on('closed', function () {
+        settingWindow = null;
+    })
+});
+
 ipcMain.on('stream-added', function () {
     mainWindow.webContents.send('load-streams');
-})
+});
 
 ipcMain.on('minimize-window', function () {
     mainWindow.minimize();
@@ -107,8 +136,12 @@ ipcMain.on('minimize-window', function () {
 ipcMain.on('close-main-window', function () {
     mainWindow.hide()
     // mainWindow.close();
-})
+});
 
 ipcMain.on('close-stream-window', function () {
     addStreamWindow.close();
-})
+});
+
+ipcMain.on('close-setting-window', function () {
+    settingWindow.close();
+});
