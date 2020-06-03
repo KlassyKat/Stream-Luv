@@ -37,3 +37,7 @@
         [] Twitch link
 
     [] Set open whenever a stream is live 
+
+[] Integrate point auto collecting web scraper
+
+[x] Delay before setting offline

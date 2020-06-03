@@ -48,6 +48,10 @@ input:checked+.slider {
     background-color: #ff8000;
 }
 
+input:checked:hover+.slider:hover {
+    background-color: #c56300;
+}
+
 
 input:checked+.slider:before {
     -webkit-transform: translateY(-26px);

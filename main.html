@@ -28,7 +28,7 @@
 
     <div class="stream-tile-container">
         <ul class="stream-tiles" id="tile-wrapper">
-            <li class="stream-item draggable" id="place-holder">
+            <li class="stream-item draggable" id="place-holder" draggable="true">
                 <div class="stream-toggle">
                     <label class="switch">
                         <input type="checkbox"
@@ -172,7 +172,7 @@
 
     function setLiveState(liveStreams) {
         streamElements = createTileArray('element');
-        let checkedStreams = streamElements.filter(element => liveStreams.includes(element.id)); //try?
+        let checkedStreams = streamElements.filter(element => liveStreams.includes(element.id));
         for (element of streamElements) {
             if (checkedStreams.includes(element) && streamers[element.id].autoopen && !streamers[element.id]
                 .streamopen) { //Live and auto open on
@@ -204,7 +204,11 @@
                 element.children[3].children[1].classList.remove('live_on');
                 try {
                     streamers[element.id].live = false;
-                    streamers[element.id].streamopen = false;
+                    setTimeout(() => {
+                        if(!streamers[element.id].live) {
+                            streamers[element.id].streamopen = false;
+                        }
+                    }, 600000);
                 } catch (err) {
                     console.log(err);
                 }
