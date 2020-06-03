@@ -32,7 +32,8 @@
                     name: stream,
                     autoopen: false,
                     live: false,
-                    streamopen: false
+                    streamopen: false,
+                    autocollect: false
                 };
                 localStorage.setItem("streamers", JSON.stringify(streams));
                 ipcRenderer.send("stream-added");

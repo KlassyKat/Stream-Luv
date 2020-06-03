@@ -8,11 +8,14 @@ const {
 } = require('electron');
 const windowStateKeeper = require('electron-window-state');
 
+const pie = require('puppeteer-in-electron');
+const puppeteer = require('puppeteer-core');
+
+
 let mainWindow;
 let addStreamWindow;
 let settingWindow;
 let mainWindowState;
-
 const iconPath = `${__dirname}/buildResources/icon2.ico`;
 let tray = null;
 
@@ -145,3 +148,6 @@ ipcMain.on('close-stream-window', function () {
 ipcMain.on('close-setting-window', function () {
     settingWindow.close();
 });
+
+
+// Puppeteer Auto Channel Point Collection

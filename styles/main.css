@@ -146,3 +146,7 @@ button.add-stream:hover {
     background-color: #994d00;
     transform: scale(1.03) translate(0, -1px);
 }
+
+.auto-collect_on {
+    background-color: rgb(104, 113, 140) !important;
+}

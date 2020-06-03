@@ -41,3 +41,9 @@
 [] Integrate point auto collecting web scraper
 
 [x] Delay before setting offline
+
+[] Add auto poiint collection per channel toggle
+
+    -Add additional switch
+    -Add option to right click menu change tile color
+    -Click icon and add ring to icon as indicator

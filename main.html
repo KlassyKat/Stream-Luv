@@ -122,6 +122,9 @@
     function createTile(payload) {
         let newTile = streamTile.cloneNode(true);
         newTile.id = payload.login;
+        if(streamers[payload.login].autocollect) {
+            newTile.classList.add('auto-collect_on');
+        }
         newTile.children[1].src = payload.profile_image_url;
         newTile.children[0].children[0].children[0].checked = streamers[payload.login].autoopen;
         let streamName = document.createTextNode(payload.display_name);
@@ -253,7 +256,15 @@
 
     //Right Click Menu
     let elementClick;
-    const menu = new Menu()
+    const menu = new Menu();
+
+    menu.append(new MenuItem({
+        label: 'Auto Point Collection',
+        click() {
+            toggleAutoCollection(elementClick.id)
+        }
+    }))
+    
     menu.append(new MenuItem({
         label: 'Remove',
         click() {
@@ -275,5 +286,19 @@
                 })
             })
         }
+    }
+
+    function toggleAutoCollection(id) {
+        streamers = JSON.parse(localStorage.getItem('streamers'));
+        let collectValue = streamers[id].autocollect;
+        streamers[id].autocollect = !collectValue;
+        collectValue = !collectValue
+        if(collectValue) {
+            document.getElementById(id).classList.add('auto-collect_on');
+        } else {
+            document.getElementById(id).classList.remove('auto-collect_on');
+        }
+        console.log(collectValue);
+        localStorage.setItem('streamers', JSON.stringify(streamers));
     }
 </script>
