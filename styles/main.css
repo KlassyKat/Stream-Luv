@@ -65,6 +65,8 @@ body {
     stroke-width: 5;
 }
 
+
+/* Stream tiles */
 .stream-tile-container {
     grid-row: 2/3;
     height: 450px;
@@ -89,6 +91,7 @@ body {
 .stream-tiles>li {
     display: grid;
     grid-template-columns: 50px 86px auto 50px;
+    /* grid-template-rows: auto 2px; */
     font-family: 'Montserrat', sans-serif;
     list-style: none;
     padding: 5px 9px 5px 5px;
@@ -96,6 +99,10 @@ body {
     color: white;
     border-radius: 5px;
 }
+
+/* .stream-toggle {
+    padding-left: 5px;
+} */
 
 .thumbnail {
     width: 60px;
@@ -121,6 +128,7 @@ body {
     color: #ff8000;
     font-weight: bold;
 }
+
 
 /* Add Stream Button */
 .add-btn-container {

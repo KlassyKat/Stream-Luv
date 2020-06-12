@@ -180,6 +180,7 @@
             if (checkedStreams.includes(element) && streamers[element.id].autoopen && !streamers[element.id]
                 .streamopen) { //Live and auto open on
                 shell.openExternal("https://www.twitch.tv/" + element.id);
+                openAutoCollect(element.id, 0);
                 element.children[3].children[0].classList.add('live-indicator_on');
                 element.children[3].children[1].classList.remove('live-state_off');
                 element.children[3].children[1].classList.add('live-state_on');
@@ -220,6 +221,12 @@
         localStorage.setItem('streamers', JSON.stringify(streamers));
         clearTimeout(streamWatcher);
         watchStreams();
+    }
+
+    function openAutoCollect(id, type) {
+        if(streamers[id].autocollect) {
+            ipcRenderer.send("openAutoCollect", [type, id]);
+        }
     }
 
     function createTileArray(type) {

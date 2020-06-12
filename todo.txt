@@ -31,6 +31,7 @@
         [] Close exits or goes to tray
         [] Streams open when another stream is already live
         [] Start up in tray
+        [] Open in primary browser or electron window or electron window for auto collect only.
 
     [] Support
         [] Donate streamlabs link

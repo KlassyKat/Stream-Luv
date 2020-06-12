@@ -151,3 +151,46 @@ ipcMain.on('close-setting-window', function () {
 
 
 // Puppeteer Auto Channel Point Collection
+let collectionWindows = {};
+let browser;
+
+startAutoCollection();
+
+async function startAutoCollection() {
+    await pie.initialize(app);
+    browser = await pie.connect(app, puppeteer);
+}
+
+ipcMain.on('openAutoCollect', (e, args) => {
+    let type, id = [args];
+    console.log(type);
+    console.log(id);
+})
+
+async function openWindow(stream) {
+    let window = new BrowserWindow({
+        width: 1920,
+        height: 1080,
+        show: true
+    });
+    collectionWindows.stream = window;
+
+    collectionWindows[stream].loadURL("https://www.twitch.tv/" + stream);
+    await pie.getPage(browser, collectionWindows[stream]);
+}
+
+// async function closeWindow() {
+
+// }
+
+async function autoCollection() {
+    let pageList = await browser.pages();
+    for(stream in pageList) {
+        stream = pageList[stream];
+        let claimPoints = await stream.$('.claimable-bonus__icon');
+        if(claimPoints) {
+            console.log('Points claimed.')
+            claimPoints.click();
+        }
+    }
+}
