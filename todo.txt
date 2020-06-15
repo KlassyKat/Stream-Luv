@@ -48,3 +48,16 @@
     -Add additional switch
     -Add option to right click menu change tile color
     -Click icon and add ring to icon as indicator
+
+[] Settings
+    [] Twitch Login
+
+    [] Open type
+        -Main Browser
+        -In StreamLuv
+
+    [] Max open streams
+        -0 for MAX
+    
+    
+

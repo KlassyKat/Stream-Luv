@@ -1,4 +1,5 @@
 <link rel="stylesheet" href="./styles/settingsSwitch.css">
+<link rel="stylesheet" href="./styles/settings.css">
 
 <body onkeypress="submitEnter(event)" onkeyup="submitEnter(event)">
     <div class="container">
@@ -6,17 +7,42 @@
             Settings
         </header>
         <div class="support-wrapper">
-            <ul class="support-list">
-                <li class="support-me-item">heart</li>
-                <li class="help-item">?</li>
-            </ul>
+            <button id="twitch-login">
+                <!-- Twitch Logo -->
+                <svg height="70%" viewBox="0 0 207 240" version="1.1"
+                    style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+                    <g>
+                        <path
+                            d="M52.181,193.856l-52.181,0l0,-152.14l44.229,-41.716l162.757,0l0,136.703l-57.153,57.153l-49.262,0l-48.39,45.953l0,-45.953Z"
+                            style="fill:#9147ff;" />
+                        <path
+                            d="M86.006,146.171l-34.613,0l0,-131.049l138.465,0l0,95.895l-35.154,35.154l-34.655,0l-34.043,32.327l0,-32.327Z"
+                            style="fill:#fff;" />
+                        <rect x="103.493" y="51.65" width="17.132" height="50.751" style="fill:#9147ff;" />
+                        <rect x="145.901" y="51.65" width="17.132" height="50.751" style="fill:#9147ff;" />
+                    </g>
+                </svg>
+                <!-- Twitch Logo -->
+                <strong>Login</strong>
+            </button>
+            <span></span>
+            <button id="app-info">
+                <svg width="100%" height="100%" viewBox="0 0 299 299"
+                    style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+                    <path
+                        d="M149.362,0c82.435,0 149.362,66.927 149.362,149.362c0,82.435 -66.927,149.362 -149.362,149.362c-82.435,0 -149.362,-66.927 -149.362,-149.362c0,-82.435 66.927,-149.362 149.362,-149.362Zm0,23.898c69.246,0 125.465,56.219 125.465,125.464c0,69.246 -56.219,125.465 -125.465,125.465c-69.245,0 -125.464,-56.219 -125.464,-125.465c0,-69.245 56.219,-125.464 125.464,-125.464Z"
+                        style="fill:#fff;" /><text x="78.856px" y="256.25px"
+                        style="font-family:'FranklinGothic-Medium', 'Franklin Gothic Medium', sans-serif;font-size:289.955px;fill:#fff;">?</text>
+                </svg>
+            </button>
+            <span></span>
+            <button id="support-me">&#10084</button>
         </div>
         <div class="menuItems">
             <div class="setting-item">
                 <div class="stream-toggle">
                     <label class="switch">
-                        <input type="checkbox"
-                            onclick="setting()">
+                        <input type="checkbox" onclick="setting()">
                         <span class="slider"></span>
                     </label>
                 </div>
@@ -52,73 +78,3 @@
         }
     }
 </script>
-
-
-<style>
-    @import url('https://fonts.googleapis.com/css?family=Montserrat:500,400');
-
-    body * {
-        font-family: 'Montserrat', sans-serif;
-    }
-
-    body {
-        margin: 0;
-        padding: 0;
-    }
-
-    .container {
-        width: 100%;
-        height: 100%;
-        background-color: #1c1c1c;
-        display: grid;
-        grid-template-rows: 29px 2fr 1fr;
-    }
-
-    header {
-        background-color: #0d0d0d;
-        padding: 3px 6px;
-        color: white;
-        display: flex;
-        align-items: center;
-        -webkit-app-region: drag;
-    }
-
-    .menuItems {
-        display: flex;
-        color: white;
-        justify-content: center;
-        align-items: center;
-        background-color: #1c1c1c;
-    }
-
-    footer {
-        display: grid;
-        grid-template-columns: auto 70px 15px 70px auto;
-        text-align: center;
-        background-color: #1c1c1c;
-    }
-
-    button {
-        font-family: 'Montserrat', sans-serif;
-        height: 23px;
-        background-color: #ff8000;
-        border: none;
-        border-radius: 10px;
-        font-weight: 500;
-        font-size: 15px;
-        outline: none;
-    }
-
-    button.submit {
-        grid-column: 2/3;
-    }
-
-    button.cancel {
-        grid-column: 4/5;
-    }
-
-    button:hover {
-        background-color: #994d00;
-        transform: scale(1.035) translate(0, 0);
-    }
-</style>
