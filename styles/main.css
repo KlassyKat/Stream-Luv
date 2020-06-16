@@ -85,7 +85,6 @@ body {
 .stream-tiles {
     display: grid;
     padding-left: 5px;
-    row-gap: 6px;
 }
 
 .stream-tiles>li {
@@ -97,6 +96,7 @@ body {
     background-color: #4d4d4d;
     color: white;
     border-radius: 5px;
+    margin-bottom: 5px;
 }
 
 .stream-toggle {
@@ -190,6 +190,7 @@ button.add-stream {
 button.add-stream:hover {
     background-color: #994d00;
     transform: scale(1.03) translate(0, -1px);
+    cursor: pointer;
 }
 
 .auto-collect_on {
