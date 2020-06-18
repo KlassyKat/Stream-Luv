@@ -2,16 +2,6 @@
         [] Create Instructions for shell:startup in settings
     [x]Probably make tiles reamin through API errors (API ERROR message?)
 
-    [-]Drop down with live content z-index opacity absolute pos translate down
-
-    [-]Uptime?
-
-    [-]Category?
-
-    [-]Viewers?
-
-    [-]Stream title
-
     [x]add delete tile
         [x] sort localstorage
 
@@ -22,7 +12,7 @@
 
     []Info page when no tiles
 
-    []Get rid of not allowed in drag
+    [] Get rid of not allowed in drag
 
     [] Link click set stream to open if currently live
 
@@ -32,18 +22,19 @@
         [] Streams open when another stream is already live
         [] Start up in tray
         [] Open in primary browser or electron window or electron window for auto collect only.
+        [] Priority order in list order
 
     [] Support
         [] Donate streamlabs link
         [] Twitch link
 
-    [] Set open whenever a stream is live 
+    [] Set open whenever a stream is live
 
 [] Integrate point auto collecting web scraper
 
 [x] Delay before setting offline
 
-[] Add auto poiint collection per channel toggle
+[x] Add auto point collection per channel toggle
 
     -Add additional switch
     -Add option to right click menu change tile color
@@ -59,5 +50,9 @@
     [] Max open streams
         -0 for MAX
     
-    
+
+[] Open in browser open in window right click options
+
+[] Make link focus window if already open
+    [] Set streamopen to open when click link and vice versa when closing
 

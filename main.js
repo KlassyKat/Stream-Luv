@@ -4,7 +4,8 @@ const {
     ipcMain,
     Tray,
     Menu,
-    shell
+    shell,
+    BrowserView
 } = require('electron');
 const windowStateKeeper = require('electron-window-state');
 
@@ -54,6 +55,9 @@ app.on('ready', function () {
     let template = [{
             label: 'Open',
             click: () => mainWindow.show()
+        },
+        {
+            type: 'separator'
         },
         {
             label: 'Quit StreamLuv',
@@ -152,36 +156,89 @@ ipcMain.on('close-setting-window', function () {
 
 // Puppeteer Auto Channel Point Collection
 let collectionWindows = {};
+let collectionViews = {};
 let browser;
 
 startAutoCollection();
-
 async function startAutoCollection() {
     await pie.initialize(app);
     browser = await pie.connect(app, puppeteer);
 }
 
-ipcMain.on('openAutoCollect', (e, args) => {
-    let type, id = [args];
-    console.log(type);
-    console.log(id);
+ipcMain.on('open-auto-collect', (e, args) => {
+    let { type, id } = args;
+    openWindow(id);
 })
 
+// let streamWindowState = windowStateKeeper({
+//     maximize: true
+// })
+let windowConfig = {
+    width: 600,
+    height: 300,
+    alwaysOnTop: false
+}
 async function openWindow(stream) {
     let window = new BrowserWindow({
-        width: 1920,
-        height: 1080,
-        show: true
+        webPreferences: {
+            nodeIntegration: true
+        },
+        show: true,
+        frame: false,
+        width: windowConfig.width,
+        height: windowConfig.height,
+        alwaysOnTop: windowConfig.alwaysOnTop,
+        backgroundColor: '#1d1d1d'
     });
-    collectionWindows.stream = window;
+    let view = new BrowserView();
+    window.setBrowserView(view);
+    let viewAnchor = {x: 0, y: 32};
+    view.setBounds({...viewAnchor, width: windowConfig.width, height: windowConfig.height});
+    view.webContents.loadURL("https://www.twitch.tv/" + stream);
 
-    collectionWindows[stream].loadURL("https://www.twitch.tv/" + stream);
+    window.on('will-resize', (e, newBounds) => {
+        view.setBounds({ ...viewAnchor, width: newBounds.width, height: newBounds.height - viewAnchor.y})
+    });
+
+    view.webContents.on('will-navigate', () => {
+        window.close();
+    })
+
+    window.on('maximize', () => {
+        let newBounds = window.getBounds();
+        newBounds.width = newBounds.width - 2*8;
+        newBounds.height = newBounds.height - 2*8;
+        view.setBounds({ ...viewAnchor, width: newBounds.width, height: newBounds.height - viewAnchor.y})
+    })
+
+    await window.loadFile(`${__dirname}/streamWrapper.html`);
+    window.webContents.send('page-title', stream);
+    collectionWindows[stream] = window;
+    collectionViews[stream] = view;
+
     await pie.getPage(browser, collectionWindows[stream]);
 }
 
-// async function closeWindow() {
+ipcMain.on('toggle-stream-mute', (e, data) => {
+    collectionViews[data.window].webContents.setAudioMuted(data.val);
+})
 
-// }
+ipcMain.on('close-stream-shell', (e, data) => {
+    collectionWindows[data].close();
+    collectionViews[data].destroy();
+    delete collectionWindows[data];
+    delete collectionViews[data];
+})
+
+ipcMain.on('twitch-login', () => {
+    windowConfig.width = 400;
+    windowConfig.height = 475;
+    windowConfig.alwaysOnTop = true;
+    openWindow('login');
+    windowConfig.width = 600;
+    windowConfig.height = 300;
+    windowConfig.alwaysOnTop = false;
+})
 
 async function autoCollection() {
     let pageList = await browser.pages();

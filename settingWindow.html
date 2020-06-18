@@ -7,7 +7,7 @@
             Settings
         </header>
         <div class="support-wrapper">
-            <button id="twitch-login">
+            <button onclick="twitchLogin()" id="twitch-login">
                 <!-- Twitch Logo -->
                 <svg height="70%" viewBox="0 0 207 240" version="1.1"
                     style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
@@ -63,11 +63,15 @@
     let streamInput = document.querySelector(".url-input");
     let streams = JSON.parse(localStorage.getItem('streamers')) || {};
 
-    function closeWindow() {
-        ipcRenderer.send("close-setting-window");
+
+    function twitchLogin() {
+        ipcRenderer.send('twitch-login');
     }
 
 
+    function closeWindow() {
+        ipcRenderer.send("close-setting-window");
+    }
 
     //Key shortcuts
     function submitEnter(e) {
