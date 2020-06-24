@@ -51,6 +51,7 @@
         <footer>
             <button class="submit" onclick="applySettings()">Apply</button>
             <button class="cancel" onclick="closeWindow()">Cancel</button>
+            <button class="cancel" onclick="twitchLogout()">logout</button>
         </footer>
     </div>
 </body>
@@ -66,6 +67,10 @@
 
     function twitchLogin() {
         ipcRenderer.send('twitch-login');
+    }
+
+    function twitchLogout() {
+        ipcRenderer.send('twitch-logout');
     }
 
 

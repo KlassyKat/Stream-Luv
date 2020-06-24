@@ -56,3 +56,5 @@
 [] Make link focus window if already open
     [] Set streamopen to open when click link and vice versa when closing
 
+[] Change always on top windows to modals
+

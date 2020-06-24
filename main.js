@@ -157,6 +157,7 @@ ipcMain.on('close-setting-window', function () {
 // Puppeteer Auto Channel Point Collection
 let collectionWindows = {};
 let collectionViews = {};
+let collectionPages = {};
 let browser;
 
 startAutoCollection();
@@ -166,18 +167,16 @@ async function startAutoCollection() {
 }
 
 ipcMain.on('open-auto-collect', (e, args) => {
-    let { type, id } = args;
+    let {
+        type,
+        id
+    } = args;
     openWindow(id);
 })
 
 // let streamWindowState = windowStateKeeper({
 //     maximize: true
 // })
-let windowConfig = {
-    width: 600,
-    height: 300,
-    alwaysOnTop: false
-}
 async function openWindow(stream) {
     let window = new BrowserWindow({
         webPreferences: {
@@ -185,30 +184,40 @@ async function openWindow(stream) {
         },
         show: true,
         frame: false,
-        width: windowConfig.width,
-        height: windowConfig.height,
-        alwaysOnTop: windowConfig.alwaysOnTop,
+        width: 600,
+        height: 300,
         backgroundColor: '#1d1d1d'
     });
     let view = new BrowserView();
     window.setBrowserView(view);
-    let viewAnchor = {x: 0, y: 32};
-    view.setBounds({...viewAnchor, width: windowConfig.width, height: windowConfig.height});
+    let viewAnchor = {
+        x: 0,
+        y: 32
+    };
+    view.setBounds({
+        ...viewAnchor,
+        width: 600,
+        height: 268
+    });
     view.webContents.loadURL("https://www.twitch.tv/" + stream);
 
     window.on('will-resize', (e, newBounds) => {
-        view.setBounds({ ...viewAnchor, width: newBounds.width, height: newBounds.height - viewAnchor.y})
+        view.setBounds({
+            ...viewAnchor,
+            width: newBounds.width,
+            height: newBounds.height - viewAnchor.y
+        })
     });
-
-    view.webContents.on('will-navigate', () => {
-        window.close();
-    })
 
     window.on('maximize', () => {
         let newBounds = window.getBounds();
-        newBounds.width = newBounds.width - 2*8;
-        newBounds.height = newBounds.height - 2*8;
-        view.setBounds({ ...viewAnchor, width: newBounds.width, height: newBounds.height - viewAnchor.y})
+        newBounds.width = newBounds.width - 2 * 8;
+        newBounds.height = newBounds.height - 2 * 8;
+        view.setBounds({
+            ...viewAnchor,
+            width: newBounds.width,
+            height: newBounds.height - viewAnchor.y
+        })
     })
 
     await window.loadFile(`${__dirname}/streamWrapper.html`);
@@ -230,22 +239,77 @@ ipcMain.on('close-stream-shell', (e, data) => {
     delete collectionViews[data];
 })
 
-ipcMain.on('twitch-login', () => {
-    windowConfig.width = 400;
-    windowConfig.height = 475;
-    windowConfig.alwaysOnTop = true;
-    openWindow('login');
-    windowConfig.width = 600;
-    windowConfig.height = 300;
-    windowConfig.alwaysOnTop = false;
+ipcMain.on('twitch-login', async () => {
+    let loginWindow = new BrowserWindow({
+        webPreferences: {
+            nodeIntegration: true
+        },
+        show: true,
+        frame: false,
+        width: 400,
+        height: 470,
+        alwaysOnTop: true,
+        backgroundColor: '#1d1d1d',
+        modal: true,
+        parent: settingWindow,
+        resizable: false
+    });
+    let loginView = new BrowserView();
+    loginWindow.setBrowserView(loginView);
+
+    loginView.setBounds({
+        x: 0,
+        y: 32,
+        width: 400,
+        height: 438
+    });
+
+    loginView.webContents.on('will-navigate', () => {
+        loginWindow.close();
+        loginView.destroy();
+    })
+
+    loginView.webContents.loadURL("https://www.twitch.tv/login");
+
+    await loginWindow.loadFile(`${__dirname}/loginWrapper.html`);
+    loginWindow.webContents.send('page-title', 'login');
+
+    ipcMain.on('twitch-login-close', () => {
+        loginWindow.close();
+        loginView.destroy();
+    })
 })
+
+ipcMain.on('twitch-logout', async () => {
+    let logoutWindow = new BrowserWindow({
+        width: 1920,
+        height: 1080,
+        show: true
+    })
+
+    logoutWindow.webContents.setAudioMuted(true);
+
+    await logoutWindow.loadURL('https://www.twitch.tv/directory/following');
+    collectionPages.logout = await pie.getPage(browser, logoutWindow);
+
+    collectionPages.logout.waitForSelector("img[alt='User Avatar']")
+    .then(() => {
+        console.log('Clickity click bitch');
+        collectionPages.logout.click("img[alt='User Avatar']", {button: 'middle'});
+    })
+    // await Promise.all([
+    //     new Promise(resolve => collectionPages.logout.once('domcontentloaded', resolve)),
+    //     console.log('click'),
+    //     await collectionPages.logout.mouse.click(900, 300, {button: 'middle'}),
+    // ]);
+});
 
 async function autoCollection() {
     let pageList = await browser.pages();
-    for(stream in pageList) {
+    for (stream in pageList) {
         stream = pageList[stream];
         let claimPoints = await stream.$('.claimable-bonus__icon');
-        if(claimPoints) {
+        if (claimPoints) {
             console.log('Points claimed.')
             claimPoints.click();
         }

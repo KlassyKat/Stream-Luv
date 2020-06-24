@@ -1,0 +1,31 @@
+<link rel="stylesheet" href="./styles/loginWrapper.css">
+
+<body>
+    <nav class="control-bar">
+        <strong id="window-title">Placeholder</strong>
+        <span onclick="closeWindow()" class="close-window">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+                <line x1="2" y1="2" x2="30" y2="30" />
+                <line x1="2" y1="30" x2="30" y2="2" />
+            </svg>
+        </span>
+    </nav>
+</body>
+
+<script>
+    const {
+        ipcRenderer
+    } = require('electron');
+
+    let streamPage;
+
+    ipcRenderer.on('page-title', (e, data) => {
+        streamPage = data;
+        document.getElementById('window-title').innerHTML = streamPage;
+    })
+
+
+    function closeWindow() {
+        ipcRenderer.send('twitch-login-close', streamPage);
+    }
+</script>
