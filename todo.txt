@@ -58,3 +58,11 @@
 
 [] Change always on top windows to modals
 
+[] Windows push notifications
+
+[] Turn off during full screen applications?
+
+[] Update token jsonblob?
+
+[] Improve drag and drop sortable.js https://www.youtube.com/watch?v=EXHO_Yu8G00
+

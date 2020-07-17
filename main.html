@@ -317,4 +317,13 @@
         console.log(collectValue);
         localStorage.setItem('streamers', JSON.stringify(streamers));
     }
+
+    ipcRenderer.send('twitch-logout', "get-user");
+    ipcRenderer.on('user-name', (e, data) => {
+        if(data) {
+            localStorage.setItem('user', data);
+        } else {
+            localStorage.removeItem('user');
+        }
+    })
 </script>

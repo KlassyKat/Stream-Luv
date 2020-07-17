@@ -117,7 +117,6 @@ ipcMain.on('open-setting-window', function () {
         height: 600,
         backgroundColor: "#1c1c1c",
         frame: false,
-        alwaysOnTop: true,
         parent: mainWindow,
         show: false
     });
@@ -239,52 +238,68 @@ ipcMain.on('close-stream-shell', (e, data) => {
     delete collectionViews[data];
 })
 
+let loginWindow, loginView
 ipcMain.on('twitch-login', async () => {
-    let loginWindow = new BrowserWindow({
+    loginWindow = new BrowserWindow({
         webPreferences: {
             nodeIntegration: true
         },
         show: true,
         frame: false,
         width: 400,
-        height: 470,
+        height: 477,
         alwaysOnTop: true,
         backgroundColor: '#1d1d1d',
         modal: true,
         parent: settingWindow,
         resizable: false
     });
-    let loginView = new BrowserView();
+    loginView = new BrowserView({
+        backgroundColor: '#18181B'
+    });
     loginWindow.setBrowserView(loginView);
 
     loginView.setBounds({
         x: 0,
         y: 32,
         width: 400,
-        height: 438
+        height: 445
     });
 
-    loginView.webContents.on('will-navigate', () => {
-        loginWindow.close();
-        loginView.destroy();
+    loginView.webContents.on('will-navigate', async () => {
+        try {
+            await loginWindow.close();
+            loginWindow = null;
+            await loginView.destroy();
+            loginView = null;
+            settingWindow.webContents.send('logged-in');
+        } catch (error) {
+            return;
+        }
     })
 
     loginView.webContents.loadURL("https://www.twitch.tv/login");
 
     await loginWindow.loadFile(`${__dirname}/loginWrapper.html`);
-    loginWindow.webContents.send('page-title', 'login');
 
-    ipcMain.on('twitch-login-close', () => {
-        loginWindow.close();
-        loginView.destroy();
+    ipcMain.on('twitch-login-close', async () => {
+        try {
+            await loginWindow.close();
+            loginWindow = null;
+            await loginView.destroy();
+            loginView = null;
+        } catch (error) {
+            return;
+        }
     })
 })
 
-ipcMain.on('twitch-logout', async () => {
+
+ipcMain.on('twitch-logout', async (e, logout) => {
     let logoutWindow = new BrowserWindow({
         width: 1920,
         height: 1080,
-        show: true
+        show: false
     })
 
     logoutWindow.webContents.setAudioMuted(true);
@@ -292,16 +307,66 @@ ipcMain.on('twitch-logout', async () => {
     await logoutWindow.loadURL('https://www.twitch.tv/directory/following');
     collectionPages.logout = await pie.getPage(browser, logoutWindow);
 
-    collectionPages.logout.waitForSelector("img[alt='User Avatar']")
-    .then(() => {
-        console.log('Clickity click bitch');
-        collectionPages.logout.click("img[alt='User Avatar']", {button: 'middle'});
-    })
-    // await Promise.all([
-    //     new Promise(resolve => collectionPages.logout.once('domcontentloaded', resolve)),
-    //     console.log('click'),
-    //     await collectionPages.logout.mouse.click(900, 300, {button: 'middle'}),
-    // ]);
+    switch (logout) {
+        case "logout":
+            console.log('Start Logout');
+            await collectionPages.logout.waitForSelector("img[alt='User Avatar']")
+                .then(async () => {
+                    collectionPages.logout.click("img[alt='User Avatar']");
+
+                    await collectionPages.logout.waitForSelector("button[data-a-target='dropdown-logout']")
+                        .then(async () => {
+                            await collectionPages.logout.click("button[data-a-target='dropdown-logout']");
+                            // https://passport.twitch.tv/logout/new
+                            await collectionPages.logout.waitForResponse('https://id.twitch.tv/oauth2/revoke')
+                                .then(() => {
+                                    console.log('logged out');
+                                    closeLogout();
+                                })
+                                .catch((e) => {
+                                    closeLogout();
+                                    return;
+                                })
+                        })
+                })
+                .catch((e) => {
+                    console.log(e);
+                    closeLogout();
+                    return;
+                });
+            break;
+    case "get-user":
+        await collectionPages.logout.waitForResponse('https://client-event-reporter.twitch.tv/v1/stats')
+        .then(async () => {
+            try {
+                await collectionPages.logout.click("img[alt='User Avatar']");
+                let userName = await collectionPages.logout.$eval("[data-a-target='user-display-name']", name => name.textContent);
+                await mainWindow.webContents.send('user-name', userName);
+                console.log(userName);
+                await settingWindow.webContents.send('user-name');
+                closeLogout();
+        } catch (e) {
+                await mainWindow.webContents.send('user-name', false);
+                closeLogout();
+        }
+        }).catch((e) => {
+            console.log('timeout');
+        })
+        break;
+    }
+
+
+    async function closeLogout() {
+        try {
+            await logoutWindow.close();
+            logoutWindow = null;
+            await logoutView.destroy();
+            logoutView = null;
+        } catch (error) {
+            return;
+        }
+    }
+
 });
 
 async function autoCollection() {

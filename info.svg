@@ -1,0 +1,9 @@
+<svg width="100%" height="100%" viewBox="0 0 21 21"
+    style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g>
+        <path
+            d="M10.288,0c5.678,0 10.287,4.61 10.287,10.288c0,5.678 -4.609,10.287 -10.287,10.287c-5.678,0 -10.288,-4.609 -10.288,-10.287c0,-5.678 4.61,-10.288 10.288,-10.288Zm0,2.983c4.031,0 7.304,3.273 7.304,7.305c0,4.031 -3.273,7.304 -7.304,7.304c-4.032,0 -7.305,-3.273 -7.305,-7.304c0,-4.032 3.273,-7.305 7.305,-7.305Z"
+            style="fill:#121212;" /><text x="5.815px" y="16.496px"
+            style="font-family:'Montserrat-Medium', 'Montserrat';font-weight:500;font-size:17.714px;fill:#121212;">?</text>
+    </g>
+</svg>

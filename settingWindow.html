@@ -1,30 +1,37 @@
 <link rel="stylesheet" href="./styles/settingsSwitch.css">
 <link rel="stylesheet" href="./styles/settings.css">
+<link rel="stylesheet" href="./styles/customRadioButton.css">
 
-<body onkeypress="submitEnter(event)" onkeyup="submitEnter(event)">
+<body onkeypress="submitEnter(event)" onkeyup="submitEnter(event)" onload="loadTwitchActions()">
     <div class="container">
         <header>
             Settings
         </header>
         <div class="support-wrapper">
-            <button onclick="twitchLogin()" id="twitch-login">
-                <!-- Twitch Logo -->
-                <svg height="70%" viewBox="0 0 207 240" version="1.1"
-                    style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
-                    <g>
-                        <path
-                            d="M52.181,193.856l-52.181,0l0,-152.14l44.229,-41.716l162.757,0l0,136.703l-57.153,57.153l-49.262,0l-48.39,45.953l0,-45.953Z"
-                            style="fill:#9147ff;" />
-                        <path
-                            d="M86.006,146.171l-34.613,0l0,-131.049l138.465,0l0,95.895l-35.154,35.154l-34.655,0l-34.043,32.327l0,-32.327Z"
-                            style="fill:#fff;" />
-                        <rect x="103.493" y="51.65" width="17.132" height="50.751" style="fill:#9147ff;" />
-                        <rect x="145.901" y="51.65" width="17.132" height="50.751" style="fill:#9147ff;" />
-                    </g>
-                </svg>
-                <!-- Twitch Logo -->
-                <strong>Login</strong>
-            </button>
+            <div id="twitch-actions">
+                <button onclick="twitchLogin()" id="twitch-login">
+                    <!-- Twitch Logo -->
+                    <svg height="70%" viewBox="0 0 207 240" version="1.1"
+                        style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+                        <g>
+                            <path
+                                d="M52.181,193.856l-52.181,0l0,-152.14l44.229,-41.716l162.757,0l0,136.703l-57.153,57.153l-49.262,0l-48.39,45.953l0,-45.953Z"
+                                style="fill:#9147ff;" />
+                            <path
+                                d="M86.006,146.171l-34.613,0l0,-131.049l138.465,0l0,95.895l-35.154,35.154l-34.655,0l-34.043,32.327l0,-32.327Z"
+                                style="fill:#fff;" />
+                            <rect x="103.493" y="51.65" width="17.132" height="50.751" style="fill:#9147ff;" />
+                            <rect x="145.901" y="51.65" width="17.132" height="50.751" style="fill:#9147ff;" />
+                        </g>
+                    </svg>
+                    <!-- Twitch Logo -->
+                    <strong>Login</strong>
+                </button>
+                <div id="logout-wrapper">
+                    <h3 id="user-name-display"></h3>
+                    <h4 id="logout-text" onclick="twitchLogout()">logout</h4>
+                </div>
+            </div>
             <span></span>
             <button id="app-info">
                 <svg width="100%" height="100%" viewBox="0 0 299 299"
@@ -33,12 +40,31 @@
                         d="M149.362,0c82.435,0 149.362,66.927 149.362,149.362c0,82.435 -66.927,149.362 -149.362,149.362c-82.435,0 -149.362,-66.927 -149.362,-149.362c0,-82.435 66.927,-149.362 149.362,-149.362Zm0,23.898c69.246,0 125.465,56.219 125.465,125.464c0,69.246 -56.219,125.465 -125.465,125.465c-69.245,0 -125.464,-56.219 -125.464,-125.465c0,-69.245 56.219,-125.464 125.464,-125.464Z"
                         style="fill:#fff;" /><text x="75.974px" y="253.006px"
                         style="font-family:'Barlow-Bold', 'Barlow';font-weight:700;font-size:289.955px;fill:#fff;">?</text>
-                    </svg>
+                </svg>
             </button>
             <span></span>
             <button id="support-me">&#10084</button>
         </div>
-        <div class="menuItems">
+        <div class="menu-items">
+
+            <div id="manual-open-type-wrapper">
+                <h2 class="setting-label"><strong onclick="infoBox('tile-link-info', this)" on>Tile Link</strong></h2>
+                <div class="info-tile" id="tile-link-info">
+                    <p class="info-content">Default way manual links open.</p>
+                </div>
+
+                <form class="setting-form">
+                    <label class="input-container">StreamLuv Window
+                        <input type="radio" id="stream-luv-open" name="open-type" value="stream-luv">
+                        <span class="custom-rb"></span>
+                    </label>
+                    <label class="input-container">Default Browser Window
+                        <input type="radio" id="browser-open" name="open-type" value="browser" checked>
+                        <span class="custom-rb"></span>
+                    </label>
+                </form>
+            </div>
+            
             <div class="setting-item">
                 <div class="stream-toggle">
                     <label class="switch">
@@ -64,13 +90,38 @@
     let streamInput = document.querySelector(".url-input");
     let streams = JSON.parse(localStorage.getItem('streamers')) || {};
 
+    ipcRenderer.send('twitch-logout', "get-user");
+
+    function loadTwitchActions() {
+        console.log('load')
+        let loginState = localStorage.getItem('user');
+        if (loginState) {
+            document.getElementById('twitch-login').style.display = 'none';
+            document.getElementById('logout-wrapper').style.display = 'flex';
+        } else {
+            document.getElementById('logout-wrapper').style.display = 'none';
+            document.getElementById('twitch-login').style.display = 'flex';
+        }
+
+        document.getElementById('user-name-display').innerHTML = loginState;
+    }
+
 
     function twitchLogin() {
         ipcRenderer.send('twitch-login');
     }
 
+    ipcRenderer.on('logged-in', () => {
+        ipcRenderer.send('twitch-logout', "get-user");
+        loadTwitchActions();
+    })
+
+    ipcRenderer.on('user-name', () => {
+        loadTwitchActions();
+    })
+
     function twitchLogout() {
-        ipcRenderer.send('twitch-logout');
+        ipcRenderer.send('twitch-logout', "logout");
     }
 
 
@@ -86,4 +137,24 @@
             closeWindow();
         }
     }
+
+    let isOpen = {};
+    function infoBox(box, origin) {
+        isOpen[box] = !isOpen[box];
+        let {right, top} = origin.getBoundingClientRect();
+        let infoBox = document.getElementById(box);
+        if(isOpen[box]) { 
+            infoBox.style.left = right + 10;
+            infoBox.style.top = top;
+            infoBox.classList.add('info-tile_on');
+        } 
+    }
+
+    document.addEventListener('click', (e) => {
+        for(tile in isOpen) {
+            let val = isOpen[tile];
+            console.log(tile);
+        }
+    })
+
 </script>
