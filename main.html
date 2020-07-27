@@ -28,7 +28,7 @@
 
     <div class="stream-tile-container">
         <ul class="stream-tiles" id="tile-wrapper">
-            <li class="stream-item draggable" id="place-holder" draggable="true">
+            <li class="stream-item draggable" id="place-holder">
                 <div class="stream-toggle">
                     <label class="switch">
                         <input type="checkbox"
@@ -72,9 +72,7 @@
         APP_TOKEN,
         AUTH_TOKEN
     } = require('./secret.js');
-    const {
-        setDraggables
-    } = require('./draggable.js');
+    const Sortable = require('sortablejs');
 
     let streamers = JSON.parse(localStorage.getItem('streamers'));
     let tileWrapper = document.getElementById('tile-wrapper');
@@ -92,7 +90,12 @@
         }
     }
 
-    loadStreamers();
+    loadStreamers().then(() => {
+        // let dragList = createTileArray('element');
+        let dragList = document.getElementById('tile-wrapper');
+        console.log(dragList);
+        let sortable = Sortable.create(dragList);
+    })
 
     async function loadStreamers() {
         axios.defaults.headers.common['Client-ID'] = APP_TOKEN;
@@ -105,13 +108,12 @@
                 if (response == undefined) {
                     delete streamers[streamer];
                 }
-                console.log(response);
                 checkTiles(response);
             } catch (err) {
                 console.log(err);
             }
         }
-        setDraggables();
+        return;
     }
 
     function checkTiles(payload) {
@@ -168,7 +170,6 @@
             try {
                 let response = await axios.get('https://api.twitch.tv/helix/streams?user_login=' + streamer.name);
                 response = response.data.data[0];
-                console.log(response);
                 let cleanedName = response.user_name.toLowerCase().replace(/ /g, '');
                 liveStreams.push(cleanedName);
             } catch (err) {
@@ -216,6 +217,7 @@
                     setTimeout(() => {
                         if(!streamers[element.id].live) {
                             streamers[element.id].streamopen = false;
+                            localStorage.setItem('streamers', JSON.stringify(streamers));
                         }
                     }, 600000);
                 } catch (err) {
@@ -228,9 +230,12 @@
         watchStreams();
     }
 
+    // Function to open Channel Point Collection 
+    // Type 0: for StreamLuv window
+    // Type 1: Browser window with hidden window
     function openAutoCollect(id, type) {
         if(streamers[id].autocollect) {
-            ipcRenderer.send("open-auto-collect", {type, id});
+            ipcRenderer.send("open-auto-collect", {id, type});
         }
     }
 

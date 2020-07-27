@@ -177,6 +177,7 @@ ipcMain.on('open-auto-collect', (e, args) => {
 //     maximize: true
 // })
 async function openWindow(stream) {
+    console.log(stream);
     let window = new BrowserWindow({
         webPreferences: {
             nodeIntegration: true
@@ -231,9 +232,9 @@ ipcMain.on('toggle-stream-mute', (e, data) => {
     collectionViews[data.window].webContents.setAudioMuted(data.val);
 })
 
-ipcMain.on('close-stream-shell', (e, data) => {
-    collectionWindows[data].close();
-    collectionViews[data].destroy();
+ipcMain.on('close-stream-shell', async(e, data) => {
+    await collectionWindows[data].close();
+    await collectionViews[data].destroy();
     delete collectionWindows[data];
     delete collectionViews[data];
 })

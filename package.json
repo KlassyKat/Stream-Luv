@@ -32,6 +32,7 @@
     "electron-window-state": "^5.0.3",
     "node-localstorage": "^2.1.6",
     "puppeteer-core": "^3.3.0",
-    "puppeteer-in-electron": "^3.0.2"
+    "puppeteer-in-electron": "^3.0.2",
+    "sortablejs": "^1.10.2"
   }
 }
