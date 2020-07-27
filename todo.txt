@@ -64,5 +64,7 @@
 
 [] Update token jsonblob?
 
-[] Improve drag and drop sortable.js https://www.youtube.com/watch?v=EXHO_Yu8G00
+[x] Improve drag and drop sortable.js https://www.youtube.com/watch?v=EXHO_Yu8G00
+
+[] Remap Ctrl + R in stream wrapper to reload browser view.
 

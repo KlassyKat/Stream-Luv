@@ -214,6 +214,8 @@
                 element.children[3].children[1].classList.remove('live_on');
                 try {
                     streamers[element.id].live = false;
+                    localStorage.setItem('streamers', JSON.stringify(streamers));
+                    // Add delay to stop repeat autoopen in case of stream crashes.
                     setTimeout(() => {
                         if(!streamers[element.id].live) {
                             streamers[element.id].streamopen = false;
