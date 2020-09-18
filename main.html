@@ -70,7 +70,7 @@
     } = remote;
     const {
         APP_TOKEN,
-        AUTH_TOKEN
+        getToken,
     } = require('./secret.js');
     const Sortable = require('sortablejs');
 
@@ -98,6 +98,7 @@
     })
 
     async function loadStreamers() {
+        let AUTH_TOKEN = await getToken();
         axios.defaults.headers.common['Client-ID'] = APP_TOKEN;
         axios.defaults.headers.common['Authorization'] = `Bearer ${AUTH_TOKEN}`;
         for (let streamer in streamers) {
@@ -149,8 +150,8 @@
     function streamLink(streamLinkId) {
         let linkURL = "https://www.twitch.tv/" + streamLinkId;
         // if window type setting
-        // shell.openExternal(linkURL);
-        openAutoCollect(streamLinkId, 0);
+        shell.openExternal(linkURL);
+        // openAutoCollect(streamLinkId, 0);
     }
 
     function toggleAutoOpen(streamId, value) {

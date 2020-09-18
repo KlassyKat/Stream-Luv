@@ -73,7 +73,8 @@ app.on('ready', function () {
     tray.setToolTip('Stream Luv');
 });
 
-
+// Opening on startup
+// https://www.electronjs.org/docs/api/shell#shellwriteshortcutlinkshortcutpath-operation-options-windows
 
 //Open add stream window
 ipcMain.on('open-stream-window', function () {
@@ -140,7 +141,7 @@ ipcMain.on('minimize-window', function () {
 });
 
 ipcMain.on('close-main-window', function () {
-    mainWindow.hide()
+    mainWindow.hide();
     // mainWindow.close();
 });
 
