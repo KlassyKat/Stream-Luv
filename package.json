@@ -17,7 +17,7 @@
     "productName": "Stream Luv",
     "win": {
       "target": "nsis",
-      "icon": "./buildResources/icon2.png",
+      "icon": "./buildResources/icon.png",
       "publish": "github"
     }
   },

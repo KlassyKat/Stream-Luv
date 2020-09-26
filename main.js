@@ -17,7 +17,7 @@ let mainWindow;
 let addStreamWindow;
 let settingWindow;
 let mainWindowState;
-const iconPath = `${__dirname}/buildResources/icon2.ico`;
+const iconPath = `${__dirname}/buildResources/icon.ico`;
 let tray = null;
 
 app.allowRendererProcessReuse = true;
@@ -41,7 +41,7 @@ app.on('ready', function () {
         resizeable: false,
         frame: false,
         backgroundColor: '#212121',
-        icon: './buildResources/icon2.ico'
+        icon: './buildResources/icon.ico'
     });
     mainWindow.setResizable(false); //Workaround
     mainWindow.loadFile(`${__dirname}/main.html`);
