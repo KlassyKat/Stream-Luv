@@ -12,16 +12,18 @@
 
     []Info page when no tiles
 
-    [] Get rid of not allowed in drag
+    [x] Get rid of not allowed in drag
 
-    [] Link click set stream to open if currently live
+    [x] Link click set stream to open if currently live
+
+    [] Bug fix getting logged in state
 
     [] Settings
         [] Show promoted streamer
         [] Close exits or goes to tray
         [] Streams open when another stream is already live
         [] Start up in tray
-        [] Open in primary browser or electron window or electron window for auto collect only.
+        [x] Open in primary browser or electron window or electron window for auto collect only.
         [] Priority order in list order
 
     [] Support
@@ -41,6 +43,7 @@
     -Click icon and add ring to icon as indicator
 
 [] Settings
+    //Features
     [] Twitch Login
 
     [] Open type
@@ -49,22 +52,30 @@
 
     [] Max open streams
         -0 for MAX
+
+    //Bugs
+    [] Login button immediately after login
     
 
 [] Open in browser open in window right click options
 
 [] Make link focus window if already open
-    [] Set streamopen to open when click link and vice versa when closing
+    [] Set streamopen to open when click link
 
-[] Change always on top windows to modals
+[x] Change always on top windows to modals
 
-[] Windows push notifications
+[] Windows push notifications?
 
-[] Turn off during full screen applications?
+[] Turn off during full screen applications??
 
-[] Update token jsonblob?
+[x] Update token jsonblob?
+[] Make executable to run all steps
 
 [x] Improve drag and drop sortable.js https://www.youtube.com/watch?v=EXHO_Yu8G00
 
 [] Remap Ctrl + R in stream wrapper to reload browser view.
+
+[] Window State Manager for stream windows
+
+[] Handle non existant streams
 

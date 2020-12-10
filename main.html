@@ -75,6 +75,7 @@
     const Sortable = require('sortablejs');
 
     let streamers = JSON.parse(localStorage.getItem('streamers'));
+    let settings = JSON.parse(localStorage.getItem('settings')) || {};
     let tileWrapper = document.getElementById('tile-wrapper');
     let streamTile = document.getElementById('place-holder');
     let streamElements = createTileArray('element');
@@ -148,16 +149,24 @@
     }
 
     function streamLink(streamLinkId) {
+        getSettings();
         let linkURL = "https://www.twitch.tv/" + streamLinkId;
-        // if window type setting
-        shell.openExternal(linkURL);
-        // openAutoCollect(streamLinkId, 0);
+        streamers[streamLinkId].streamopen = true;
+        try {
+            if(settings.linkType == 'browser') {
+            shell.openExternal(linkURL);
+            } else if(settings.linkType == 'stream-luv') {
+                openAutoCollect(streamLinkId, 0);
+            } 
+        } catch {
+            shell.openExternal(linkURL)
+        }
     }
 
     function toggleAutoOpen(streamId, value) {
         //TODO Change switch state based json value
         streamers[streamId].autoopen = value;
-        localStorage.setItem('streamers', JSON.stringify(streamers));
+        saveStreamers();
     }
 
     function setSwitchState() {
@@ -216,18 +225,16 @@
                 try {
                     streamers[element.id].live = false;
                     // Add delay to stop repeat autoopen in case of stream crashes.
-                    // setTimeout(() => {
-                    //     if(!streamers[element.id].live) {
-                            streamers[element.id].streamopen = false;
-                            localStorage.setItem('streamers', JSON.stringify(streamers));
-                    //     }
-                    // }, 600000);
+                    setTimeout(() => {
+                        streamers[element.id].streamopen = false;
+                        saveStreamers();
+                    }, 600000);
                 } catch (err) {
                     console.log(err);
                 }
             }
         }
-        localStorage.setItem('streamers', JSON.stringify(streamers));
+        saveStreamers();
         clearTimeout(streamWatcher);
         watchStreams();
     }
@@ -236,7 +243,7 @@
     // Type 0: for StreamLuv window
     // Type 1: Browser window with hidden window
     function openAutoCollect(id, type) {
-        if(streamers[id].autocollect) {
+        if(true) {
             ipcRenderer.send("open-auto-collect", {id, type});
         }
     }
@@ -268,7 +275,7 @@
     }
 
     ipcRenderer.on('load-streams', function () {
-        streamers = JSON.parse(localStorage.getItem('streamers'));
+        getStreamers();
         loadStreamers();
     })
 
@@ -292,9 +299,9 @@
         label: 'Remove',
         click() {
             elementClick.parentNode.removeChild(elementClick);
-            streamers = JSON.parse(localStorage.getItem('streamers'));
+            getStreamers();
             delete streamers[elementClick.id];
-            localStorage.setItem('streamers', JSON.stringify(streamers));
+            saveStreamers();
         }
     }))
 
@@ -312,7 +319,7 @@
     }
 
     function toggleAutoCollection(id) {
-        streamers = JSON.parse(localStorage.getItem('streamers'));
+        getStreamers();
         let collectValue = streamers[id].autocollect;
         streamers[id].autocollect = !collectValue;
         collectValue = !collectValue
@@ -322,15 +329,23 @@
             document.getElementById(id).classList.remove('auto-collect_on');
         }
         console.log(collectValue);
+        saveStreamers();
+    }
+
+
+    //SECTION
+    //Local Storage Handelers
+    function getSettings() {
+        settings = JSON.parse(localStorage.getItem('settings'));
+    }
+
+    function getStreamers() {
+        streamers = JSON.parse(localStorage.getItem('streamers'));
+    }
+
+    function saveStreamers() {
         localStorage.setItem('streamers', JSON.stringify(streamers));
     }
 
-    ipcRenderer.send('twitch-logout', "get-user");
-    ipcRenderer.on('user-name', (e, data) => {
-        if(data) {
-            localStorage.setItem('user', data);
-        } else {
-            localStorage.removeItem('user');
-        }
-    })
+    // ipcRenderer.send('twitch-logout', "get-user");
 </script>

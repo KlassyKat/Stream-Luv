@@ -187,7 +187,8 @@ async function openWindow(stream) {
         frame: false,
         width: 600,
         height: 300,
-        backgroundColor: '#1d1d1d'
+        backgroundColor: '#1d1d1d',
+        title: stream
     });
     let view = new BrowserView();
     window.setBrowserView(view);
@@ -201,6 +202,19 @@ async function openWindow(stream) {
         height: 268
     });
     view.webContents.loadURL("https://www.twitch.tv/" + stream);
+
+    //Window Menu
+    let windowMenuTemplate = [
+        {
+            label: 'Reload',
+            accelerator: 'Ctrl+R',
+            click: () => {
+                view.webContents.reload();
+            }
+        }
+    ]
+    let windowMenu = Menu.buildFromTemplate(windowMenuTemplate);
+    window.setMenu(windowMenu);
 
     window.on('will-resize', (e, newBounds) => {
         view.setBounds({
@@ -219,6 +233,11 @@ async function openWindow(stream) {
             width: newBounds.width,
             height: newBounds.height - viewAnchor.y
         })
+    })
+
+    window.on('close', async () => {
+        window.close();
+        view.destroy();
     })
 
     await window.loadFile(`${__dirname}/streamWrapper.html`);
@@ -322,6 +341,7 @@ ipcMain.on('twitch-logout', async (e, logout) => {
                             // https://passport.twitch.tv/logout/new
                             await collectionPages.logout.waitForResponse('https://id.twitch.tv/oauth2/revoke')
                                 .then(() => {
+                                    settingWindow.webContents.send('logout-success');
                                     console.log('logged out');
                                     closeLogout();
                                 })
@@ -338,17 +358,18 @@ ipcMain.on('twitch-logout', async (e, logout) => {
                 });
             break;
     case "get-user":
-        await collectionPages.logout.waitForResponse('https://client-event-reporter.twitch.tv/v1/stats')
+        // await collectionPages.logout.waitForResponse('https://client-event-reporter.twitch.tv/v1/stats')
+        await collectionPages.logout.waitForSelector("img[alt='User Avatar']")
         .then(async () => {
             try {
                 await collectionPages.logout.click("img[alt='User Avatar']");
                 let userName = await collectionPages.logout.$eval("[data-a-target='user-display-name']", name => name.textContent);
-                await mainWindow.webContents.send('user-name', userName);
+                // mainWindow.webContents.send('user-name', userName);
                 console.log(userName);
-                await settingWindow.webContents.send('user-name');
+                settingWindow.webContents.send('user-name', userName);
                 closeLogout();
         } catch (e) {
-                await mainWindow.webContents.send('user-name', false);
+                // await mainWindow.webContents.send('user-name', false);
                 closeLogout();
         }
         }).catch((e) => {

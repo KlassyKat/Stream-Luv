@@ -29,7 +29,17 @@
                 </button>
                 <div id="logout-wrapper">
                     <h3 id="user-name-display"></h3>
-                    <h4 id="logout-text" onclick="twitchLogout()">logout</h4>
+                    <!-- Logout Icon -->
+                    <span id="logout-icon-wrapper" onclick="twitchLogout()">
+                        <svg width="20px" viewBox="0 0 32 27" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+                            <path
+                                d="M11.806,17.502l0,6.638c0,0.531 0.211,1.04 0.587,1.416c0.375,0.376 0.885,0.587 1.416,0.587c4.229,-0 11.96,-0 16.188,-0c0.532,-0 1.041,-0.211 1.416,-0.587c0.376,-0.376 0.587,-0.885 0.587,-1.416c-0,-4.563 -0,-17.575 -0,-22.137c0,-0.532 -0.211,-1.041 -0.587,-1.416c-0.375,-0.376 -0.884,-0.587 -1.416,-0.587c-4.228,0 -11.959,0 -16.188,0c-0.531,-0 -1.041,0.211 -1.416,0.587c-0.376,0.375 -0.587,0.884 -0.587,1.416l0,6.741l3.542,0l-0,-4.04c-0,-0.18 0.072,-0.354 0.2,-0.482c0.127,-0.128 0.301,-0.199 0.482,-0.199c2.52,-0 9.226,-0 11.747,-0c0.181,-0 0.354,0.071 0.482,0.199c0.128,0.128 0.2,0.302 0.2,0.482c-0,2.683 -0,14.052 -0,16.734c-0,0.181 -0.072,0.354 -0.2,0.482c-0.128,0.128 -0.301,0.2 -0.482,0.2c-2.521,-0 -9.227,-0 -11.747,-0c-0.181,-0 -0.355,-0.072 -0.482,-0.2c-0.128,-0.128 -0.2,-0.301 -0.2,-0.482l-0,-3.936l-3.542,0Z" />
+                            <rect x="7.575" y="10.32" width="14.328" height="5.607" />
+                            <path d="M7.846,20.139l0,-14.031l-7.846,7.015l7.846,7.016Z" />
+                        </svg>
+                    </span>
+                    <!-- <h4 id="logout-text" onclick="twitchLogout()">logout</h4> -->
+                    <!-- Logout Icon -->
                 </div>
             </div>
             <span></span>
@@ -46,38 +56,55 @@
             <button id="support-me">&#10084</button>
         </div>
         <div class="menu-items">
-
-            <div id="manual-open-type-wrapper">
-                <h2 class="setting-label"><strong onclick="infoBox('tile-link-info', this)" on>Tile Link</strong></h2>
+            <!-- Link Type Setting -->
+            <div class="setting-item">
+                <div class="setting-header">
+                    <h2 class="setting-label"><strong onclick="infoBox('tile-link-info', this)">Tile Link</strong></h2>
+                    <p>How the clickable link opens streams. Either in a <span>StreamLuv Window</span> or in your main browser.</p>
+                </div>
+                
                 <div class="info-tile" id="tile-link-info">
                     <p class="info-content">Default way manual links open.</p>
                 </div>
-
-                <form class="setting-form">
+                <form class="setting-form" id="link-type">
                     <label class="input-container">StreamLuv Window
-                        <input type="radio" id="stream-luv-open" name="open-type" value="stream-luv">
+                        <input type="radio" id="stream-luv-open" onchange="changeLinkType(this.value)" name="open-type" value="stream-luv">
                         <span class="custom-rb"></span>
                     </label>
                     <label class="input-container">Default Browser Window
-                        <input type="radio" id="browser-open" name="open-type" value="browser" checked>
+                        <input type="radio" id="browser-open" onchange="changeLinkType(this.value)" name="open-type" value="browser">
                         <span class="custom-rb"></span>
                     </label>
                 </form>
             </div>
-            
+
+            <!-- Open on startup -->
             <div class="setting-item">
+                <div class="setting-header">
+                    <h2 class="setting-label"><strong>Open on Startup</strong></h2>
+                    <p>When your computer starts so does StreamLuv.</p>
+                </div>
+                <div>
+                    <label class="switch">
+                        <input type="checkbox" onclick="setting()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <span>Off</span>
+            </div>
+            
+            <!-- <div class="setting-item">
                 <div class="stream-toggle">
                     <label class="switch">
                         <input type="checkbox" onclick="setting()">
                         <span class="slider"></span>
                     </label>
                 </div>
-            </div>
+            </div> -->
         </div>
         <footer>
             <button class="submit" onclick="applySettings()">Apply</button>
             <button class="cancel" onclick="closeWindow()">Cancel</button>
-            <button class="cancel" onclick="twitchLogout()">logout</button>
         </footer>
     </div>
 </body>
@@ -89,11 +116,13 @@
 
     let streamInput = document.querySelector(".url-input");
     let streams = JSON.parse(localStorage.getItem('streamers')) || {};
+    let settings = JSON.parse(localStorage.getItem('settings')) || {};
+
 
     ipcRenderer.send('twitch-logout', "get-user");
-
+    loadTwitchActions();
     function loadTwitchActions() {
-        console.log('load')
+        console.log('load twitch actions')
         let loginState = localStorage.getItem('user');
         if (loginState) {
             document.getElementById('twitch-login').style.display = 'none';
@@ -113,11 +142,21 @@
 
     ipcRenderer.on('logged-in', () => {
         ipcRenderer.send('twitch-logout', "get-user");
+    })
+
+    ipcRenderer.on('user-name', (e, data) => {
+        console.log(data)
+        if(data) {
+            localStorage.setItem('user', data);
+        } 
+        // else {
+        //     localStorage.removeItem('user');
+        // }
         loadTwitchActions();
     })
 
-    ipcRenderer.on('user-name', () => {
-        loadTwitchActions();
+    ipcRenderer.on('logout-success', () => {
+        localStorage.removeItem('user');
     })
 
     function twitchLogout() {
@@ -156,5 +195,30 @@
             console.log(tile);
         }
     })
+
+
+    //SECTION
+    //Link Type
+    let browserOpen = document.getElementById('browser-open');
+    let streamLuvOpen = document.getElementById('stream-luv-open');
+    if(settings.linkType == 'browser') {
+        browserOpen.checked = true;
+    } else  if(settings.linkType == 'stream-luv') {
+        streamLuvOpen.checked = true;
+    } else {
+        browserOpen.checked = true;
+    }
+
+    function changeLinkType(type) {
+        console.log(type)
+        settings.linkType = type;
+        saveSettings();
+    }
+
+    function saveSettings() {
+        localStorage.setItem('settings', JSON.stringify(settings));
+    }
+
+
 
 </script>
