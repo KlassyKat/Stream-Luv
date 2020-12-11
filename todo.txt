@@ -44,14 +44,18 @@
 
 [] Settings
     //Features
-    [] Twitch Login
+    [x] Twitch Login
 
-    [] Open type
+    [x] Open type
         -Main Browser
         -In StreamLuv
 
     [] Max open streams
         -0 for MAX
+
+    [] Open on Startup
+
+    [] Start streams muted (StreamLuv Window Only)
 
     //Bugs
     [] Login button immediately after login

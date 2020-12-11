@@ -118,6 +118,7 @@ header {
     flex-direction: column;
 }
 
+
 .setting-header {
     background-color: #222222;
     padding: 8px 20px;
@@ -135,26 +136,6 @@ header {
     font-size: 13px;
 }
 
-.setting-label > strong:hover {
-    cursor: help;
-}
-
-.info-tile {
-    display: none;
-    position: absolute;
-    background-color: #0d0d0d;
-    padding: 10px;
-    transition: 0.2s;
-    opacity: 0;
-    border: 1px solid white;
-    z-index: 9001;
-}
-
-.info-tile_on {
-    display: block;
-    opacity: 1;
-}
-
 .setting-form {
     padding-left: 35px;
     display: flex;
@@ -162,10 +143,12 @@ header {
     width: auto;
 }
 
-.setting-form > * {
+.input-container {
     margin-bottom: 15px;
     font-size: large;
     font-weight: 500;
+    display: flex;
+    align-items: center;
 }
 
 .option-group {
@@ -213,3 +196,34 @@ button.cancel {
     background-color: #994d00;
     transform: scale(1.035) translate(0, 0);
 }
+
+/* Unique */
+.stream-luv-window-info {
+    margin-left: 8px;
+    background-color: #202020;
+    border-radius: 40px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    height: 28px;
+    width: 28px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.stream-luv-window-info:hover {
+    background-color: #0f0f0f;
+}
+
+#link-type {
+    width: 90vw;
+    display: grid;
+    grid-template-columns: min-content auto;
+}
+#link-type > label {
+    white-space: nowrap;
+}
+#link-type > label:nth-child(3) {
+    grid-column: 1/3;
+}
+

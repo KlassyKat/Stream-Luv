@@ -107,6 +107,7 @@
             try {
                 let response = await axios.get('https://api.twitch.tv/helix/users?login=' + streamer.name);
                 response = response.data.data[0];
+                console.log(response)
                 if (response == undefined) {
                     delete streamers[streamer];
                 }
@@ -179,9 +180,11 @@
             streamer = streamers[streamer];
             try {
                 let response = await axios.get('https://api.twitch.tv/helix/streams?user_login=' + streamer.name);
+                console.log(response);
                 response = response.data.data[0];
                 let cleanedName = response.user_name.toLowerCase().replace(/ /g, '');
-                liveStreams.push(cleanedName);
+                // So hard to believe this is an actual fix but can't find an issue
+                liveStreams.push(streamer.name);
             } catch (err) {
                 console.log(err);
             }

@@ -59,18 +59,17 @@
             <!-- Link Type Setting -->
             <div class="setting-item">
                 <div class="setting-header">
-                    <h2 class="setting-label"><strong onclick="infoBox('tile-link-info', this)">Tile Link</strong></h2>
+                    <h2 class="setting-label"><strong>Tile Link</strong></h2>
                     <p>How the clickable link opens streams. Either in a <span>StreamLuv Window</span> or in your main browser.</p>
                 </div>
                 
-                <div class="info-tile" id="tile-link-info">
-                    <p class="info-content">Default way manual links open.</p>
-                </div>
                 <form class="setting-form" id="link-type">
                     <label class="input-container">StreamLuv Window
                         <input type="radio" id="stream-luv-open" onchange="changeLinkType(this.value)" name="open-type" value="stream-luv">
                         <span class="custom-rb"></span>
                     </label>
+                    <span class="stream-luv-window-info">?</span>
+                    
                     <label class="input-container">Default Browser Window
                         <input type="radio" id="browser-open" onchange="changeLinkType(this.value)" name="open-type" value="browser">
                         <span class="custom-rb"></span>
@@ -84,13 +83,16 @@
                     <h2 class="setting-label"><strong>Open on Startup</strong></h2>
                     <p>When your computer starts so does StreamLuv.</p>
                 </div>
-                <div>
+                <div class="switch-wrapper">
                     <label class="switch">
-                        <input type="checkbox" onclick="setting()">
+                        <input type="checkbox" onclick="setAutoOpen(this)">
                         <span class="slider"></span>
                     </label>
+                    <span id="startup-state">Off</span>
                 </div>
-                <span>Off</span>
+                
+                
+                
             </div>
             
             <!-- <div class="setting-item">
@@ -149,9 +151,9 @@
         if(data) {
             localStorage.setItem('user', data);
         } 
-        // else {
-        //     localStorage.removeItem('user');
-        // }
+        else {
+            localStorage.removeItem('user');
+        }
         loadTwitchActions();
     })
 
@@ -177,27 +179,10 @@
         }
     }
 
-    let isOpen = {};
-    function infoBox(box, origin) {
-        isOpen[box] = !isOpen[box];
-        let {right, top} = origin.getBoundingClientRect();
-        let infoBox = document.getElementById(box);
-        if(isOpen[box]) { 
-            infoBox.style.left = right + 10;
-            infoBox.style.top = top;
-            infoBox.classList.add('info-tile_on');
-        } 
-    }
-
-    document.addEventListener('click', (e) => {
-        for(tile in isOpen) {
-            let val = isOpen[tile];
-            console.log(tile);
-        }
-    })
+    //SECTION Set setting states
 
 
-    //SECTION
+    //SECTION Setting controls
     //Link Type
     let browserOpen = document.getElementById('browser-open');
     let streamLuvOpen = document.getElementById('stream-luv-open');
@@ -213,6 +198,16 @@
         console.log(type)
         settings.linkType = type;
         saveSettings();
+    }
+
+    //Set to auto open
+    function setAutoOpen(e) {
+        console.log(e.checked);
+        if(e.checked) {
+            settings.autoopen = true;
+        } else {
+            settings.autoopen = false;
+        }
     }
 
     function saveSettings() {
