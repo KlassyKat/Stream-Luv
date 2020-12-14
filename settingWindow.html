@@ -1,5 +1,6 @@
 <link rel="stylesheet" href="./styles/settingsSwitch.css">
 <link rel="stylesheet" href="./styles/settings.css">
+<link rel="stylesheet" href="./styles/scroll.css">
 <link rel="stylesheet" href="./styles/customRadioButton.css">
 
 <body onkeypress="submitEnter(event)" onkeyup="submitEnter(event)" onload="loadTwitchActions()">
@@ -28,10 +29,11 @@
                     <strong>Login</strong>
                 </button>
                 <div id="logout-wrapper">
-                    <h3 id="user-name-display"></h3>
+                    <span id="user-name-display"></span>
                     <!-- Logout Icon -->
                     <span id="logout-icon-wrapper" onclick="twitchLogout()">
-                        <svg width="20px" viewBox="0 0 32 27" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+                        <svg width="20px" viewBox="0 0 32 27"
+                            style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
                             <path
                                 d="M11.806,17.502l0,6.638c0,0.531 0.211,1.04 0.587,1.416c0.375,0.376 0.885,0.587 1.416,0.587c4.229,-0 11.96,-0 16.188,-0c0.532,-0 1.041,-0.211 1.416,-0.587c0.376,-0.376 0.587,-0.885 0.587,-1.416c-0,-4.563 -0,-17.575 -0,-22.137c0,-0.532 -0.211,-1.041 -0.587,-1.416c-0.375,-0.376 -0.884,-0.587 -1.416,-0.587c-4.228,0 -11.959,0 -16.188,0c-0.531,-0 -1.041,0.211 -1.416,0.587c-0.376,0.375 -0.587,0.884 -0.587,1.416l0,6.741l3.542,0l-0,-4.04c-0,-0.18 0.072,-0.354 0.2,-0.482c0.127,-0.128 0.301,-0.199 0.482,-0.199c2.52,-0 9.226,-0 11.747,-0c0.181,-0 0.354,0.071 0.482,0.199c0.128,0.128 0.2,0.302 0.2,0.482c-0,2.683 -0,14.052 -0,16.734c-0,0.181 -0.072,0.354 -0.2,0.482c-0.128,0.128 -0.301,0.2 -0.482,0.2c-2.521,-0 -9.227,-0 -11.747,-0c-0.181,-0 -0.355,-0.072 -0.482,-0.2c-0.128,-0.128 -0.2,-0.301 -0.2,-0.482l-0,-3.936l-3.542,0Z" />
                             <rect x="7.575" y="10.32" width="14.328" height="5.607" />
@@ -55,47 +57,91 @@
             <span></span>
             <button id="support-me">&#10084</button>
         </div>
-        <div class="menu-items">
-            <!-- Link Type Setting -->
-            <div class="setting-item">
-                <div class="setting-header">
-                    <h2 class="setting-label"><strong>Tile Link</strong></h2>
-                    <p>How the clickable link opens streams. Either in a <span>StreamLuv Window</span> or in your main browser.</p>
-                </div>
-                
-                <form class="setting-form" id="link-type">
-                    <label class="input-container">StreamLuv Window
-                        <input type="radio" id="stream-luv-open" onchange="changeLinkType(this.value)" name="open-type" value="stream-luv">
-                        <span class="custom-rb"></span>
-                    </label>
-                    <span class="stream-luv-window-info">?</span>
-                    
-                    <label class="input-container">Default Browser Window
-                        <input type="radio" id="browser-open" onchange="changeLinkType(this.value)" name="open-type" value="browser">
-                        <span class="custom-rb"></span>
-                    </label>
-                </form>
-            </div>
+        <div class="scroll-wrapper">
+            <div class="menu-items">
+                <!-- Auto Open Behavior -->
+                <div class="setting-item">
+                    <div class="setting-header">
+                        <h2 class="setting-label"><strong>Auto Open Behavior</strong></h2>
+                        <p>What window type StreamLuv will open streams in, based on the settings.</p>
+                    </div>
 
-            <!-- Open on startup -->
-            <div class="setting-item">
-                <div class="setting-header">
-                    <h2 class="setting-label"><strong>Open on Startup</strong></h2>
-                    <p>When your computer starts so does StreamLuv.</p>
+                    <form class="setting-form" id="auto-open-behavior">
+
+                        <label class="input-container">Default Browser Window
+                            <input type="radio" id="auto-browser-open" onchange="changeAutoOpen(this.value)" name="open-type"
+                                value="browser">
+                            <span class="custom-rb"></span>
+                        </label>
+
+                        <label class="input-container">StreamLuv Window
+                            <input type="radio" id="auto-stream-luv-open" onchange="changeAutoOpen(this.value)"
+                                name="open-type" value="stream-luv">
+                            <span class="custom-rb"></span>
+                        </label>
+                        <span class="stream-luv-window-info">?</span>
+                        <label class="input-container">Only Auto Collection Opens In StreamLuv
+                            <input type="radio" id="auto-collection-open" onchange="changeAutoOpen(this.value)"
+                                name="open-type" value="auto-collect">
+                            <span class="custom-rb"></span>
+                        </label>
+                    </form>
                 </div>
-                <div class="switch-wrapper">
-                    <label class="switch">
-                        <input type="checkbox" onclick="setAutoOpen(this)">
-                        <span class="slider"></span>
-                    </label>
-                    <span id="startup-state">Off</span>
+
+                <!-- Link Type Setting -->
+                <div class="setting-item">
+                    <div class="setting-header">
+                        <h2 class="setting-label"><strong>Tile Link</strong></h2>
+                        <p>How the clickable link opens streams. Either in a <span>StreamLuv Window</span> or in your main browser.</p>
+                    </div>
+
+                    <form class="setting-form" id="link-type">
+                        <label class="input-container">StreamLuv Window
+                            <input type="radio" id="stream-luv-open" onchange="changeLinkType(this.value)"
+                                name="open-type" value="stream-luv">
+                            <span class="custom-rb"></span>
+                        </label>
+                        <span class="stream-luv-window-info">?</span>
+
+                        <label class="input-container">Default Browser Window
+                            <input type="radio" id="browser-open" onchange="changeLinkType(this.value)" name="open-type"
+                                value="browser">
+                            <span class="custom-rb"></span>
+                        </label>
+                    </form>
                 </div>
-                
-                
-                
-            </div>
-            
-            <!-- <div class="setting-item">
+
+                <!-- Open on startup -->
+                <div class="setting-item">
+                    <div class="setting-header">
+                        <h2 class="setting-label"><strong>Open on Startup</strong></h2>
+                        <p>When your computer starts so does StreamLuv.</p>
+                    </div>
+                    <div class="switch-wrapper">
+                        <label class="switch">
+                            <input type="checkbox" id="auto-open-switch" onclick="setAutoOpen(this)">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="auto-open-state">Off</span>
+                    </div>
+                </div>
+
+                <!-- Start Streams Muted -->
+                <div class="setting-item">
+                    <div class="setting-header">
+                        <h2 class="setting-label"><strong>Start Streams Muted</strong></h2>
+                        <p>Streams start up muted. (<strong>StreamLuv Windows Only</strong>)</p>
+                    </div>
+                    <div class="switch-wrapper">
+                        <label class="switch">
+                            <input type="checkbox" id="start-muted-switch" onclick="setStartMuted(this)">
+                            <span class="slider"></span>
+                        </label>
+                        <span id="start-muted-state">Off</span>
+                    </div>
+                </div>
+
+                <!-- <div class="setting-item">
                 <div class="stream-toggle">
                     <label class="switch">
                         <input type="checkbox" onclick="setting()">
@@ -103,10 +149,10 @@
                     </label>
                 </div>
             </div> -->
+            </div>
         </div>
         <footer>
-            <button class="submit" onclick="applySettings()">Apply</button>
-            <button class="cancel" onclick="closeWindow()">Cancel</button>
+            <button class="done-btn" onclick="closeWindow()">Done</button>
         </footer>
     </div>
 </body>
@@ -123,6 +169,7 @@
 
     ipcRenderer.send('twitch-logout', "get-user");
     loadTwitchActions();
+
     function loadTwitchActions() {
         console.log('load twitch actions')
         let loginState = localStorage.getItem('user');
@@ -134,7 +181,7 @@
             document.getElementById('twitch-login').style.display = 'flex';
         }
 
-        document.getElementById('user-name-display').innerHTML = loginState;
+        document.getElementById('user-name-display').textContent = loginState;
     }
 
 
@@ -148,10 +195,9 @@
 
     ipcRenderer.on('user-name', (e, data) => {
         console.log(data)
-        if(data) {
+        if (data) {
             localStorage.setItem('user', data);
-        } 
-        else {
+        } else {
             localStorage.removeItem('user');
         }
         loadTwitchActions();
@@ -180,40 +226,97 @@
     }
 
     //SECTION Set setting states
-
-
-    //SECTION Setting controls
+    //Auto Open Behavior
+    let autoBrowser = document.getElementById('auto-browser-open');
+    let autoStreamLuv = document.getElementById('auto-stream-luv-open');
+    let autoCollection = document.getElementById('auto-collection-open');
+    if(settings.autoopentype == 'browser') {
+        autoBrowser.checked = true;
+    } else if(settings.autoopentype == 'stream-luv') {
+        autoStreamLuv.checked = true;
+    } else if(settings.autoopentype == 'auto-collect') {
+        autoCollection.checked = true;
+    } else {
+        autoBrowser.checked = true;
+    }
     //Link Type
     let browserOpen = document.getElementById('browser-open');
     let streamLuvOpen = document.getElementById('stream-luv-open');
-    if(settings.linkType == 'browser') {
+    if (settings.linkType == 'browser') {
         browserOpen.checked = true;
-    } else  if(settings.linkType == 'stream-luv') {
+    } else if (settings.linkType == 'stream-luv') {
         streamLuvOpen.checked = true;
     } else {
         browserOpen.checked = true;
     }
 
-    function changeLinkType(type) {
+    //Open on startup
+    let autoOpenSwitch = document.getElementById('auto-open-switch');
+    let autoOpenState = document.getElementById('auto-open-state');
+    if (settings.autoopen) {
+        autoOpenSwitch.checked = true;
+        autoOpenState.innerHTML = 'On';
+    } else {
+        autoOpenSwitch.checked = false;
+        autoOpenState.innerHTML = 'Off';
+    }
+
+    //Start Muted
+    let startMutedSwitch = document.getElementById('start-muted-switch');
+    let startMutedState = document.getElementById('start-muted-state');
+    if (settings.startmuted) {
+        startMutedSwitch.checked = true;
+        startMutedState.innerHTML = 'On';
+    } else {
+        startMutedSwitch.checked = false;
+        startMutedState.innerHTML = 'Off';
+    }
+
+    //SECTION Setting controls
+
+    //Auto Open Behavior
+    function changeAutoOpen(type) {
         console.log(type)
+        settings.autoopentype = type;
+        saveSettings();
+    }
+
+    //Link Type
+    function changeLinkType(type) {
+        console.log(type);
         settings.linkType = type;
         saveSettings();
     }
 
-    //Set to auto open
+    //Set to open on startup
     function setAutoOpen(e) {
         console.log(e.checked);
-        if(e.checked) {
+        if (e.checked) {
             settings.autoopen = true;
+            autoOpenState.innerHTML = 'On';
         } else {
             settings.autoopen = false;
+            autoOpenState.innerHTML = 'Off';
         }
+        ipcRenderer.send('set-startup-open', e.checked);
+        saveSettings();
+    }
+
+    //Set to start muted
+    function setStartMuted(e) {
+        console.log(e.checked);
+        if (e.checked) {
+            settings.startmuted = true;
+            startMutedState.innerHTML = 'On';
+        } else {
+            settings.startmuted = false;
+            startMutedState.innerHTML = 'Off';
+        }
+        ipcRenderer.send('set-start-muted', e.checked);
+        saveSettings();
     }
 
     function saveSettings() {
         localStorage.setItem('settings', JSON.stringify(settings));
     }
-
-
-
 </script>

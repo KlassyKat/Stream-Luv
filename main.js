@@ -17,6 +17,7 @@ let mainWindow;
 let addStreamWindow;
 let settingWindow;
 let mainWindowState;
+let streamWindowState;
 const iconPath = `${__dirname}/buildResources/icon.ico`;
 let tray = null;
 
@@ -27,6 +28,10 @@ app.on('ready', function () {
     //Main Window
     mainWindowState = windowStateKeeper({
         maximize: false
+    });
+
+    streamWindowState = windowStateKeeper({
+        maximize: true
     });
 
     mainWindow = new BrowserWindow({
@@ -132,6 +137,7 @@ ipcMain.on('open-setting-window', function () {
     })
 });
 
+
 ipcMain.on('stream-added', function () {
     mainWindow.webContents.send('load-streams');
 });
@@ -154,6 +160,7 @@ ipcMain.on('close-setting-window', function () {
 });
 
 
+//SECTION
 // Puppeteer Auto Channel Point Collection
 let collectionWindows = {};
 let collectionViews = {};
@@ -167,6 +174,9 @@ async function startAutoCollection() {
 }
 
 ipcMain.on('open-auto-collect', (e, args) => {
+    // Type 1: for StreamLuv window
+    // Type 2: Browser window with hidden window
+    // Type 3: StreamLuv Window With auto collection 
     let {
         type,
         id
@@ -174,19 +184,20 @@ ipcMain.on('open-auto-collect', (e, args) => {
     openWindow(id);
 })
 
-// let streamWindowState = windowStateKeeper({
-//     maximize: true
-// })
+//SECTION Stream shell windows
+let startMuted = false;
 async function openWindow(stream) {
     console.log(stream);
     let window = new BrowserWindow({
         webPreferences: {
             nodeIntegration: true
         },
+        x: streamWindowState.x,
+        y: streamWindowState.y,
+        width: streamWindowState.width,
+        height: streamWindowState.height,
         show: true,
         frame: false,
-        width: 600,
-        height: 300,
         backgroundColor: '#1d1d1d',
         title: stream
     });
@@ -198,9 +209,10 @@ async function openWindow(stream) {
     };
     view.setBounds({
         ...viewAnchor,
-        width: 600,
-        height: 268
+        width: streamWindowState.width,
+        height: streamWindowState.height - 32
     });
+    view.webContents.setAudioMuted(startMuted ? startMuted : false);
     view.webContents.loadURL("https://www.twitch.tv/" + stream);
 
     //Window Menu
@@ -239,19 +251,25 @@ async function openWindow(stream) {
         window.close();
         view.destroy();
     })
-
     await window.loadFile(`${__dirname}/streamWrapper.html`);
     window.webContents.send('page-title', stream);
     collectionWindows[stream] = window;
     collectionViews[stream] = view;
-
+    streamWindowState.manage(window);
     await pie.getPage(browser, collectionWindows[stream]);
 }
 
+
+//Stream Shell window controll
 ipcMain.on('toggle-stream-mute', (e, data) => {
     collectionViews[data.window].webContents.setAudioMuted(data.val);
 })
-
+ipcMain.on('minimize-stream-shell', (e, data) => {
+    collectionWindows[data].minimize();
+})
+ipcMain.on('maximize-stream-shell', (e, data) => {
+    collectionWindows[data].isMaximized() ? collectionWindows[data].unmaximize() : collectionWindows[data].maximize();
+})
 ipcMain.on('close-stream-shell', async(e, data) => {
     await collectionWindows[data].close();
     await collectionViews[data].destroy();
@@ -315,7 +333,7 @@ ipcMain.on('twitch-login', async () => {
     })
 })
 
-
+//SECTION Twitch Logout
 ipcMain.on('twitch-logout', async (e, logout) => {
     let logoutWindow = new BrowserWindow({
         width: 1920,
@@ -392,6 +410,7 @@ ipcMain.on('twitch-logout', async (e, logout) => {
 
 });
 
+//SECTION Auto Collection
 async function autoCollection() {
     let pageList = await browser.pages();
     for (stream in pageList) {
@@ -403,3 +422,35 @@ async function autoCollection() {
         }
     }
 }
+
+//SECTION Setting Handlers
+
+//Open on Startup
+let AutoLaunch = require('auto-launch');
+let appAutoLaunch = new AutoLaunch({
+    name: 'StreamLuv',
+    path: app.getAppPath()
+})
+ipcMain.on('set-startup-open', (e, data) => {
+    if(data) {
+        appAutoLaunch.enable();
+    } else {
+        appAutoLaunch.disable();
+    }
+})
+
+//Start Muted
+ipcMain.on('set-start-muted', (e, data) => {
+    if(data) {
+        startMuted = true;
+    } else {
+        startMuted = false;
+    }
+})
+
+//SECTION Load Settings
+ipcMain.on('load-settings', (e, data) => {
+    if(data) {
+        startMuted = data.startmuted;
+    }
+})

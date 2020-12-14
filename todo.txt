@@ -53,9 +53,9 @@
     [] Max open streams
         -0 for MAX
 
-    [] Open on Startup
-
-    [] Start streams muted (StreamLuv Window Only)
+    [x?] Open on Startup
+ 
+    [x] Start streams muted (StreamLuv Window Only)
 
     //Bugs
     [] Login button immediately after login
@@ -83,3 +83,8 @@
 
 [] Handle non existant streams
 
+[] Fix context menu bug
+
+[] Work on window resizing
+
+[] When set to auto open immediately check that stream

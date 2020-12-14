@@ -21,8 +21,21 @@
                 <path d="M21.24,11.931l8.138,8.138" style="fill:none;stroke-width:3.43px;" />
             </svg> 
         </span>
+        <span onclick="minimizeWindow()" class="minimize-window">
+            <svg viewBox="0 0 32 32">
+                <rect x="0" y="12" width="32" height="6"/>
+            </svg>
+        </span>
+        <span onclick="maximizeWindow()" class="maximize-window">
+            <svg viewBox="0 0 32 32">
+                <rect x="0" y="4" width="29" height="7" />
+                <rect x="0" y="4" width="4" height="24" />
+                <rect x="0" y="24" width="29" height="4" />
+                <rect x="28" y="4" width="4" height="24" />
+            </svg>
+        </span>
         <span onclick="closeWindow()" class="close-window">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+            <svg viewBox="0 0 32 32">
                 <line x1="2" y1="2" x2="30" y2="30" />
                 <line x1="2" y1="30" x2="30" y2="2" />
             </svg>
@@ -35,14 +48,24 @@
         ipcRenderer
     } = require('electron');
     let streamPage;
+    let settings = JSON.parse(localStorage.getItem('settings'));
     let mute = false;
     let soundIcon = document.getElementById('sound-icon');
     let muteIcon = document.getElementById('mute-icon');
 
+    //SECTION Startup state
+    //Page Title
     ipcRenderer.on('page-title', (e, data) => {
         streamPage = data;
         document.getElementById('window-title').innerHTML = streamPage;
     })
+
+    //Start Muted
+    if(settings.startmuted) {
+        mute = true;
+        soundIcon.style.display = 'none';
+        muteIcon.style.display = 'block';
+    }
 
     function toggleMute() {
         if(mute) {
@@ -58,6 +81,12 @@
     }
 
 
+    function minimizeWindow() {
+        ipcRenderer.send('minimize-stream-shell', streamPage);
+    }
+    function maximizeWindow() {
+        ipcRenderer.send('maximize-stream-shell', streamPage);
+    }
     function closeWindow() {
         ipcRenderer.send('close-stream-shell', streamPage);
     }

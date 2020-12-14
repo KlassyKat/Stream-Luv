@@ -75,7 +75,13 @@
     const Sortable = require('sortablejs');
 
     let streamers = JSON.parse(localStorage.getItem('streamers'));
-    let settings = JSON.parse(localStorage.getItem('settings')) || {};
+    let settings = JSON.parse(localStorage.getItem('settings')) || 
+    {
+        startmuted: false,
+        linkType: 'browser',
+        autoopen: false,
+        autoopentype: 'browser'
+    };
     let tileWrapper = document.getElementById('tile-wrapper');
     let streamTile = document.getElementById('place-holder');
     let streamElements = createTileArray('element');
@@ -94,7 +100,6 @@
     loadStreamers().then(() => {
         // let dragList = createTileArray('element');
         let dragList = document.getElementById('tile-wrapper');
-        console.log(dragList);
         let sortable = Sortable.create(dragList);
     })
 
@@ -152,22 +157,29 @@
     function streamLink(streamLinkId) {
         getSettings();
         let linkURL = "https://www.twitch.tv/" + streamLinkId;
+        console.log(streamLinkId)
         streamers[streamLinkId].streamopen = true;
         try {
             if(settings.linkType == 'browser') {
-            shell.openExternal(linkURL);
+                shell.openExternal(linkURL);
             } else if(settings.linkType == 'stream-luv') {
                 openAutoCollect(streamLinkId, 0);
-            } 
+            } else {
+                shell.openExternal(linkURL);
+            }
         } catch {
             shell.openExternal(linkURL)
         }
     }
 
-    function toggleAutoOpen(streamId, value) {
+    async function toggleAutoOpen(streamId, value) {
         //TODO Change switch state based json value
         streamers[streamId].autoopen = value;
         saveStreamers();
+        let live = await checkStreamLive(streamId);
+        if(live && streamers[streamId].autoopen && !streamers[streamId].streamopen) {
+            openStream(streamId);
+        }
     }
 
     function setSwitchState() {
@@ -179,12 +191,14 @@
         for (let streamer in streamers) {
             streamer = streamers[streamer];
             try {
-                let response = await axios.get('https://api.twitch.tv/helix/streams?user_login=' + streamer.name);
-                console.log(response);
-                response = response.data.data[0];
-                let cleanedName = response.user_name.toLowerCase().replace(/ /g, '');
+                let response = await checkStreamLive(streamer.name);
+                // response = response.data.data[0];
+                // let cleanedName = response.user_name.toLowerCase().replace(/ /g, '');
                 // So hard to believe this is an actual fix but can't find an issue
-                liveStreams.push(streamer.name);
+                if(response) {
+                    liveStreams.push(streamer.name);
+                }
+                
             } catch (err) {
                 console.log(err);
             }
@@ -192,39 +206,30 @@
         setLiveState(liveStreams);
     }
 
+    async function checkStreamLive(stream) {
+        let response =  await axios.get('https://api.twitch.tv/helix/streams?user_login=' + stream);
+        return response.data.data[0] ? true : false;
+    }
+
     function setLiveState(liveStreams) {
         streamElements = createTileArray('element');
+        getSettings();
         let checkedStreams = streamElements.filter(element => liveStreams.includes(element.id));
         for (element of streamElements) {
             if (checkedStreams.includes(element) && streamers[element.id].autoopen && !streamers[element.id]
                 .streamopen) { //Live and auto open on
-                shell.openExternal("https://www.twitch.tv/" + element.id);
-                openAutoCollect(element.id, 0);
-                element.children[3].children[0].classList.add('live-indicator_on');
-                element.children[3].children[1].classList.remove('live-state_off');
-                element.children[3].children[1].classList.add('live-state_on');
-                element.children[3].children[1].classList.add('live_on');
-                try {
-                    streamers[element.id].live = true;
-                    streamers[element.id].streamopen = true;
-                } catch (err) {
-                    console.log(err);
-                }
+                openStream(element.id);
+                changeElementLive(true, element);
+                streamers[element.id].live = true;
             } else if (checkedStreams.includes(element)) { //Live
-                element.children[3].children[0].classList.add('live-indicator_on');
-                element.children[3].children[1].classList.remove('live-state_off');
-                element.children[3].children[1].classList.add('live-state_on');
-                element.children[3].children[1].classList.add('live_on');
+                changeElementLive(true, element);
                 try {
                     streamers[element.id].live = true;
                 } catch (err) {
                     console.log(err);
                 }
             } else { //Offline
-                element.children[3].children[0].classList.remove('live-indicator_on');
-                element.children[3].children[1].classList.add('live-state_off');
-                element.children[3].children[1].classList.remove('live-state_on');
-                element.children[3].children[1].classList.remove('live_on');
+                changeElementLive(false, element);
                 try {
                     streamers[element.id].live = false;
                     // Add delay to stop repeat autoopen in case of stream crashes.
@@ -233,6 +238,7 @@
                         saveStreamers();
                     }, 600000);
                 } catch (err) {
+                    console.log(element.id)
                     console.log(err);
                 }
             }
@@ -242,10 +248,46 @@
         watchStreams();
     }
 
+    function openStream(stream) {
+        getSettings();
+        try {
+            if(settings.autoopentype == 'stream-luv') {
+            console.log('why tho')
+            openAutoCollect(stream, 0);
+            } else {
+                shell.openExternal("https://www.twitch.tv/" + stream);
+            }
+            streamers[stream].streamopen = true;
+        } catch(err) {
+            console.log(err);
+            shell.openExternal("https://www.twitch.tv/" + stream);
+            streamers[stream].streamopen = true;
+        }
+        saveStreamers();
+    }
+
+    function changeElementLive(live, element) {
+        let indicator = element.children[3].children[0];
+        let word = element.children[3].children[1];
+        if(live) {
+            indicator.classList.add('live-indicator_on');
+            word.classList.remove('live-state_off');
+            word.classList.add('live-state_on');
+            word.classList.add('live_on');
+        } else {
+            indicator.classList.remove('live-indicator_on');
+            word.classList.add('live-state_off');
+            word.classList.remove('live-state_on');
+            word.classList.remove('live_on');
+        }
+    }
+
     // Function to open Channel Point Collection 
     // Type 0: for StreamLuv window
     // Type 1: Browser window with hidden window
+    // Type 2: StreamLuv Window With auto collection
     function openAutoCollect(id, type) {
+        console.log(id);
         if(true) {
             ipcRenderer.send("open-auto-collect", {id, type});
         }
@@ -254,6 +296,9 @@
     function createTileArray(type) {
         let tileList = [];
         for (let item of tileWrapper.children) {
+            if(item.id == 'place-holder') {
+                continue;
+            }
             if (type == 'id') {
                 tileList.push(item.id);
             } else if (type == 'element') {
@@ -308,7 +353,7 @@
         }
     }))
 
-
+    //! Context Menu Bug
     function addEventListeners(elements) {
         for (element of elements) {
             element.addEventListener('contextmenu', (e) => {
@@ -349,6 +394,9 @@
     function saveStreamers() {
         localStorage.setItem('streamers', JSON.stringify(streamers));
     }
+
+    //SECTION Load settings to main.js on start
+    ipcRenderer.send('load-settings', JSON.parse(localStorage.getItem('settings')));
 
     // ipcRenderer.send('twitch-logout', "get-user");
 </script>

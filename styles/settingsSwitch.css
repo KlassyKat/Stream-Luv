@@ -1,12 +1,13 @@
 .switch-wrapper {
     display: grid;
     grid-template-columns: min-content auto;
+    align-items: center;
 }
 
 .switch {
     top: 0;
     left: 0;
-    margin: 5px;
+    margin: 5px 8px;
     position: relative;
     display: inline-block;
     width: 36px;
