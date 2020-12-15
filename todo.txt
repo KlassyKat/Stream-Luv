@@ -88,3 +88,5 @@
 [] Work on window resizing
 
 [] When set to auto open immediately check that stream
+
+[] Close logout page where possible

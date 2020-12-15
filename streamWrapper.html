@@ -47,17 +47,39 @@
     const {
         ipcRenderer
     } = require('electron');
+    
     let streamPage;
     let settings = JSON.parse(localStorage.getItem('settings'));
     let mute = false;
     let soundIcon = document.getElementById('sound-icon');
     let muteIcon = document.getElementById('mute-icon');
 
+    //Auto Collection
+    const puppeteer = require('puppeteer-core');
+    async function startAutoCollection(stream) {
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+        await page.goto('https://www.twitch.tv/' + stream);
+        let collection = setInterval(collectPoints, 10000);
+    }
+
+    async function collectPoints() {
+        let claimPoints = await page.$('.claimable-bonus__icon');
+        if (claimPoints) {
+            setTimeout(() => {
+                claimPoints.click();
+            }, 5000)
+        }
+    }
+    
+
     //SECTION Startup state
     //Page Title
     ipcRenderer.on('page-title', (e, data) => {
         streamPage = data;
         document.getElementById('window-title').innerHTML = streamPage;
+        //If autocollect
+        startAutoCollection(data);
     })
 
     //Start Muted

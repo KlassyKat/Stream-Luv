@@ -9,8 +9,8 @@ const {
 } = require('electron');
 const windowStateKeeper = require('electron-window-state');
 
-const pie = require('puppeteer-in-electron');
-const puppeteer = require('puppeteer-core');
+// const pie = require('puppeteer-in-electron');
+// const puppeteer = require('puppeteer-core');
 
 
 let mainWindow;
@@ -21,6 +21,7 @@ let streamWindowState;
 const iconPath = `${__dirname}/buildResources/icon.ico`;
 let tray = null;
 
+let autoCollectInterval;
 app.allowRendererProcessReuse = true;
 
 app.on('ready', function () {
@@ -165,32 +166,33 @@ ipcMain.on('close-setting-window', function () {
 let collectionWindows = {};
 let collectionViews = {};
 let collectionPages = {};
-let browser;
+// let browser;
 
-startAutoCollection();
-async function startAutoCollection() {
-    await pie.initialize(app);
-    browser = await pie.connect(app, puppeteer);
-}
+// startAutoCollection();
+// async function startAutoCollection() {
+//     await pie.initialize(app);
+//     browser = await pie.connect(app, puppeteer);
+// }
 
 ipcMain.on('open-auto-collect', (e, args) => {
     // Type 1: for StreamLuv window
     // Type 2: Browser window with hidden window
-    // Type 3: StreamLuv Window With auto collection 
+    // Type 3: StreamLuv Window With auto collection
     let {
         type,
         id
     } = args;
-    openWindow(id);
+    openWindow(id, 3);
 })
 
 //SECTION Stream shell windows
 let startMuted = false;
-async function openWindow(stream) {
+async function openWindow(stream, type) {
     console.log(stream);
     let window = new BrowserWindow({
         webPreferences: {
-            nodeIntegration: true
+            nodeIntegration: true,
+            webSecurity: false
         },
         x: streamWindowState.x,
         y: streamWindowState.y,
@@ -215,6 +217,18 @@ async function openWindow(stream) {
     view.webContents.setAudioMuted(startMuted ? startMuted : false);
     view.webContents.loadURL("https://www.twitch.tv/" + stream);
 
+    window.webContents.openDevTools();
+
+    //SECTION Set Auto Collect Page
+    // if(type==2 || type==3) {
+    //     console.log('Enter')
+    //     if(collectionPages != {}) {
+    //         console.log('Start Collection');
+    //         clearInterval(autoCollectInterval);
+    //         autoCollectInterval = setInterval(autoCollection, 10000);
+    //     }
+    //     collectionPages[stream] = await pie.getPage(browser, window);
+    // }
     //Window Menu
     let windowMenuTemplate = [
         {
@@ -253,10 +267,14 @@ async function openWindow(stream) {
     })
     await window.loadFile(`${__dirname}/streamWrapper.html`);
     window.webContents.send('page-title', stream);
+    window.webContents.on('will-navigate', (e, url) => {
+        console.log(url);
+    })
+
     collectionWindows[stream] = window;
     collectionViews[stream] = view;
     streamWindowState.manage(window);
-    await pie.getPage(browser, collectionWindows[stream]);
+    // await pie.getPage(browser, collectionWindows[stream]);
 }
 
 
@@ -275,6 +293,7 @@ ipcMain.on('close-stream-shell', async(e, data) => {
     await collectionViews[data].destroy();
     delete collectionWindows[data];
     delete collectionViews[data];
+    delete collectionPages[data];
 })
 
 let loginWindow, loginView
@@ -407,21 +426,20 @@ ipcMain.on('twitch-logout', async (e, logout) => {
             return;
         }
     }
-
 });
 
 //SECTION Auto Collection
-async function autoCollection() {
-    let pageList = await browser.pages();
-    for (stream in pageList) {
-        stream = pageList[stream];
-        let claimPoints = await stream.$('.claimable-bonus__icon');
-        if (claimPoints) {
-            console.log('Points claimed.')
-            claimPoints.click();
-        }
-    }
-}
+// async function autoCollection() {
+//     let pageList = await browser.pages();
+//     for (stream in pageList) {
+//         stream = pageList[stream];
+//         let claimPoints = await stream.$('.claimable-bonus__icon');
+//         if (claimPoints) {
+//             console.log('Points claimed.')
+//             claimPoints.click();
+//         }
+//     }
+// }
 
 //SECTION Setting Handlers
 
