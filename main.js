@@ -4,13 +4,12 @@ const {
     ipcMain,
     Tray,
     Menu,
-    shell,
     BrowserView
 } = require('electron');
 const windowStateKeeper = require('electron-window-state');
 
-// const pie = require('puppeteer-in-electron');
-// const puppeteer = require('puppeteer-core');
+const pie = require('puppeteer-in-electron');
+const puppeteer = require('puppeteer-core');
 
 
 let mainWindow;
@@ -165,16 +164,14 @@ ipcMain.on('close-setting-window', function () {
 // Puppeteer Auto Channel Point Collection
 let collectionWindows = {};
 let collectionViews = {};
-let collectionPages = {};
 // let browser;
+startAutoCollection();
+async function startAutoCollection() {
+    await pie.initialize(app);
+    browser = await pie.connect(app, puppeteer);
+}
 
-// startAutoCollection();
-// async function startAutoCollection() {
-//     await pie.initialize(app);
-//     browser = await pie.connect(app, puppeteer);
-// }
-
-ipcMain.on('open-auto-collect', (e, args) => {
+ipcMain.on('open-auto-collect', async (e, args) => {
     // Type 1: for StreamLuv window
     // Type 2: Browser window with hidden window
     // Type 3: StreamLuv Window With auto collection
@@ -214,21 +211,17 @@ async function openWindow(stream, type) {
         width: streamWindowState.width,
         height: streamWindowState.height - 32
     });
+
     view.webContents.setAudioMuted(startMuted ? startMuted : false);
     view.webContents.loadURL("https://www.twitch.tv/" + stream);
 
+    //Debugging
     window.webContents.openDevTools();
 
     //SECTION Set Auto Collect Page
-    // if(type==2 || type==3) {
-    //     console.log('Enter')
-    //     if(collectionPages != {}) {
-    //         console.log('Start Collection');
-    //         clearInterval(autoCollectInterval);
-    //         autoCollectInterval = setInterval(autoCollection, 10000);
-    //     }
-    //     collectionPages[stream] = await pie.getPage(browser, window);
-    // }
+    if(type == 2 || type == 3) {
+        createChatCollect(stream);
+    }
     //Window Menu
     let windowMenuTemplate = [
         {
@@ -274,10 +267,9 @@ async function openWindow(stream, type) {
     collectionWindows[stream] = window;
     collectionViews[stream] = view;
     streamWindowState.manage(window);
-    // await pie.getPage(browser, collectionWindows[stream]);
 }
 
-
+//SECTION
 //Stream Shell window controll
 ipcMain.on('toggle-stream-mute', (e, data) => {
     collectionViews[data.window].webContents.setAudioMuted(data.val);
@@ -293,8 +285,40 @@ ipcMain.on('close-stream-shell', async(e, data) => {
     await collectionViews[data].destroy();
     delete collectionWindows[data];
     delete collectionViews[data];
-    delete collectionPages[data];
-})
+});
+
+let chatCollects = [];
+let collectionInterval = null;
+async function createChatCollect(stream) {
+    let chatWindow = new BrowserWindow({
+        show: false
+    });
+    let chatView = new BrowserView();
+    chatWindow.setBrowserView(chatView);
+    chatView.loadURL = "https://www.twitch.tv/popout/"+stream+"/chat?popout=";
+    chatCollects[stream] = await pie.getPage(browser, chatWindow);
+    if(!collectionInterval) {
+        collectionInterval = setInterval(autoCollect, 10000);
+    }
+};
+
+async function autoCollect() {
+    let pageList = await browser.pages();
+    for(stream in pageList) {
+        stream = pageList[stream];
+        try {
+            let claimPoints = await stream.$('.claimable-bonus__icon');
+            if(claimPoints) {
+                console.log("Points Claimed.");
+                setTimeout(() => {
+                    claimPoints.click();
+                }, 5000);
+            }
+        } catch(err) {
+            throw err
+        }
+    }
+}
 
 let loginWindow, loginView
 ipcMain.on('twitch-login', async () => {
@@ -353,6 +377,8 @@ ipcMain.on('twitch-login', async () => {
 })
 
 //SECTION Twitch Logout
+// let collectionPages = {};
+
 ipcMain.on('twitch-logout', async (e, logout) => {
     let logoutWindow = new BrowserWindow({
         width: 1920,
@@ -427,20 +453,6 @@ ipcMain.on('twitch-logout', async (e, logout) => {
         }
     }
 });
-
-//SECTION Auto Collection
-// async function autoCollection() {
-//     let pageList = await browser.pages();
-//     for (stream in pageList) {
-//         stream = pageList[stream];
-//         let claimPoints = await stream.$('.claimable-bonus__icon');
-//         if (claimPoints) {
-//             console.log('Points claimed.')
-//             claimPoints.click();
-//         }
-//     }
-// }
-
 //SECTION Setting Handlers
 
 //Open on Startup
