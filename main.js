@@ -20,7 +20,6 @@ let streamWindowState;
 const iconPath = `${__dirname}/buildResources/icon.ico`;
 let tray = null;
 
-let autoCollectInterval;
 app.allowRendererProcessReuse = true;
 
 app.on('ready', function () {
@@ -91,10 +90,9 @@ ipcMain.on('open-stream-window', function () {
         x: mainWindowState.x - 25,
         y: mainWindowState.y + 150,
         width: 500,
-        height: 150,
+        height: 175,
         backgroundColor: "#1c1c1c",
         frame: false,
-        alwaysOnTop: true,
         parent: mainWindow,
         show: false,
         resizable: false,
@@ -173,18 +171,29 @@ async function startAutoCollection() {
 
 ipcMain.on('open-auto-collect', async (e, args) => {
     // Type 1: for StreamLuv window
-    // Type 2: Browser window with hidden window
+    // Type 2: Browser window with auto collect
     // Type 3: StreamLuv Window With auto collection
     let {
         type,
         id
     } = args;
-    openWindow(id, 3);
+    console.log(type);
+    if(type == 2) {
+        console.log('trying type 2')
+        createChatCollect(id);
+    } else {
+        openWindow(id, type);
+    }
+    
 })
 
 //SECTION Stream shell windows
 let startMuted = false;
 async function openWindow(stream, type) {
+    if (collectionWindows[stream]) {
+        collectionWindows[stream].focus();
+        return;
+    }
     console.log(stream);
     let window = new BrowserWindow({
         webPreferences: {
@@ -215,11 +224,9 @@ async function openWindow(stream, type) {
     view.webContents.setAudioMuted(startMuted ? startMuted : false);
     view.webContents.loadURL("https://www.twitch.tv/" + stream);
 
-    //Debugging
-    window.webContents.openDevTools();
-
     //SECTION Set Auto Collect Page
-    if(type == 2 || type == 3) {
+    if(type == 3) {
+        console.log('trying type 3');
         createChatCollect(stream);
     }
     //Window Menu
@@ -235,18 +242,18 @@ async function openWindow(stream, type) {
     let windowMenu = Menu.buildFromTemplate(windowMenuTemplate);
     window.setMenu(windowMenu);
 
-    window.on('will-resize', (e, newBounds) => {
-        view.setBounds({
-            ...viewAnchor,
-            width: newBounds.width,
-            height: newBounds.height - viewAnchor.y
-        })
-    });
-
     window.on('maximize', () => {
         let newBounds = window.getBounds();
-        newBounds.width = newBounds.width - 2 * 8;
-        newBounds.height = newBounds.height - 2 * 8;
+        newBounds.width = newBounds.width - 16;
+        newBounds.height = newBounds.height - 16;
+        view.setBounds({
+            ...viewAnchor,
+            width: newBounds.width,
+            height: newBounds.height - viewAnchor.y
+        })
+    })
+    window.on('resize', () => {
+        let newBounds = window.getBounds();
         view.setBounds({
             ...viewAnchor,
             width: newBounds.width,
@@ -254,10 +261,6 @@ async function openWindow(stream, type) {
         })
     })
 
-    window.on('close', async () => {
-        window.close();
-        view.destroy();
-    })
     await window.loadFile(`${__dirname}/streamWrapper.html`);
     window.webContents.send('page-title', stream);
     window.webContents.on('will-navigate', (e, url) => {
@@ -281,41 +284,58 @@ ipcMain.on('maximize-stream-shell', (e, data) => {
     collectionWindows[data].isMaximized() ? collectionWindows[data].unmaximize() : collectionWindows[data].maximize();
 })
 ipcMain.on('close-stream-shell', async(e, data) => {
+    console.log('close:' + data);
     await collectionWindows[data].close();
     await collectionViews[data].destroy();
     delete collectionWindows[data];
     delete collectionViews[data];
 });
 
+
+//SECTION Auto Collection
 let chatCollects = [];
 let collectionInterval = null;
 async function createChatCollect(stream) {
+    console.log(stream);
     let chatWindow = new BrowserWindow({
-        show: false
+        webPreferences: {
+            pageVisibility: true,
+            backgroundThrottling: false
+        },
+        show: false,
+        title: stream
     });
     let chatView = new BrowserView();
     chatWindow.setBrowserView(chatView);
-    chatView.loadURL = "https://www.twitch.tv/popout/"+stream+"/chat?popout=";
+    chatView.setBounds({
+        x: 0,
+        y: 0,
+        width: chatWindow.getBounds().width - 16,
+        height: chatWindow.getBounds().height - 59
+    });
+    chatView.webContents.loadURL(`https://www.twitch.tv/popout/${stream}/chat?popout=`);
     chatCollects[stream] = await pie.getPage(browser, chatWindow);
     if(!collectionInterval) {
         collectionInterval = setInterval(autoCollect, 10000);
     }
+
+    chatWindow.on('close', async () => {
+        chatWindow.close();
+        // chatView.destroy();
+    })
+
 };
 
 async function autoCollect() {
     let pageList = await browser.pages();
     for(stream in pageList) {
         stream = pageList[stream];
-        try {
-            let claimPoints = await stream.$('.claimable-bonus__icon');
-            if(claimPoints) {
-                console.log("Points Claimed.");
-                setTimeout(() => {
-                    claimPoints.click();
-                }, 5000);
-            }
-        } catch(err) {
-            throw err
+        let claimPoints = await stream.$('.claimable-bonus__icon');
+        if(claimPoints) {
+            console.log("Points Claimed.");
+            setTimeout(() => {
+                claimPoints.click();
+            }, 5000);
         }
     }
 }
@@ -389,20 +409,20 @@ ipcMain.on('twitch-logout', async (e, logout) => {
     logoutWindow.webContents.setAudioMuted(true);
 
     await logoutWindow.loadURL('https://www.twitch.tv/directory/following');
-    collectionPages.logout = await pie.getPage(browser, logoutWindow);
+    let logoutPage = await pie.getPage(browser, logoutWindow);
 
     switch (logout) {
         case "logout":
             console.log('Start Logout');
-            await collectionPages.logout.waitForSelector("img[alt='User Avatar']")
+            await logoutPage.waitForSelector("img[alt='User Avatar']")
                 .then(async () => {
-                    collectionPages.logout.click("img[alt='User Avatar']");
+                    logoutPage.click("img[alt='User Avatar']");
 
-                    await collectionPages.logout.waitForSelector("button[data-a-target='dropdown-logout']")
+                    await logoutPage.waitForSelector("button[data-a-target='dropdown-logout']")
                         .then(async () => {
-                            await collectionPages.logout.click("button[data-a-target='dropdown-logout']");
+                            await logoutPage.click("button[data-a-target='dropdown-logout']");
                             // https://passport.twitch.tv/logout/new
-                            await collectionPages.logout.waitForResponse('https://id.twitch.tv/oauth2/revoke')
+                            await logoutPage.waitForResponse('https://id.twitch.tv/oauth2/revoke')
                                 .then(() => {
                                     settingWindow.webContents.send('logout-success');
                                     console.log('logged out');
@@ -421,12 +441,12 @@ ipcMain.on('twitch-logout', async (e, logout) => {
                 });
             break;
     case "get-user":
-        // await collectionPages.logout.waitForResponse('https://client-event-reporter.twitch.tv/v1/stats')
-        await collectionPages.logout.waitForSelector("img[alt='User Avatar']")
+        // await logoutPage.waitForResponse('https://client-event-reporter.twitch.tv/v1/stats')
+        await logoutPage.waitForSelector("img[alt='User Avatar']")
         .then(async () => {
             try {
-                await collectionPages.logout.click("img[alt='User Avatar']");
-                let userName = await collectionPages.logout.$eval("[data-a-target='user-display-name']", name => name.textContent);
+                await logoutPage.click("img[alt='User Avatar']");
+                let userName = await logoutPage.$eval("[data-a-target='user-display-name']", name => name.textContent);
                 // mainWindow.webContents.send('user-name', userName);
                 console.log(userName);
                 settingWindow.webContents.send('user-name', userName);

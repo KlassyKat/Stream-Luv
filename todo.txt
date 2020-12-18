@@ -1,5 +1,6 @@
     []Run on startup
-        [] Create Instructions for shell:startup in settings
+        [] npm auto-launch?
+        [] Add streamluv shortcut to shell:startup first time startup?
     [x]Probably make tiles reamin through API errors (API ERROR message?)
 
     [x]add delete tile
@@ -30,14 +31,13 @@
         [] Donate streamlabs link
         [] Twitch link
 
-    [] Set open whenever a stream is live
-
 [] Integrate point auto collecting web scraper
+    [x] StreamLuv Window
+    [] Browser
 
 [x] Delay before setting offline
 
 [x] Add auto point collection per channel toggle
-
     -Add additional switch
     -Add option to right click menu change tile color
     -Click icon and add ring to icon as indicator
@@ -61,32 +61,53 @@
     [] Login button immediately after login
     
 
-[] Open in browser open in window right click options
+[x] Open in browser open in window right click options
 
-[] Make link focus window if already open
-    [] Set streamopen to open when click link
+[x] Make link focus window if already open
+    [x] Set streamopen to open when click link
 
 [x] Change always on top windows to modals
 
-[] Windows push notifications?
-
 [] Turn off during full screen applications??
+
+[] Global Pause
 
 [x] Update token jsonblob?
 [] Make executable to run all steps
 
 [x] Improve drag and drop sortable.js https://www.youtube.com/watch?v=EXHO_Yu8G00
 
-[] Remap Ctrl + R in stream wrapper to reload browser view.
+[x] Remap Ctrl + R in stream wrapper to reload browser view.
 
-[] Window State Manager for stream windows
+[x] Window State Manager for stream windows
 
-[] Handle non existant streams
+[x] Handle non existant streams
 
 [] Fix context menu bug
 
-[] Work on window resizing
+[x] Work on window resizing
 
-[] When set to auto open immediately check that stream
+[x] When set to auto open immediately check that stream
 
 [] Close logout page where possible
+
+[x?] Toggle open while live to streamluv window did not display stream? BUG
+
+[x?] Streamluv window stopped displaying twitch randomly? BUG
+
+[] Auto open continuely opens stream
+    -when auto open is false
+
+[] Close when offline
+
+[x] Stream auto opened right after closing
+
+[] Point collect stats
+    -toggle settings
+    -popout from window name
+
+[] Change window name on redirect
+
+[] Allow links to open in external browser
+
+[] Channel Point Prediction Notifications?

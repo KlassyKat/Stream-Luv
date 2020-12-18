@@ -36,7 +36,12 @@
                         <span class="slider"></span>
                     </label>
                 </div>
-                <img src="#" alt="stream icon" class="thumbnail">
+                <div class="img-wrapper">
+                    <div class="auto-collect-toggle-wrapper" onclick="toggleAutoCollection(this.parentElement.parentElement.id)">
+                        <span class="toggle-auto-collect" id="collect-state">Toggle auto collect <br> On</span>
+                    </div>
+                    <img src="#" alt="stream icon" class="thumbnail">
+                </div>
                 <div class="stream-name">
                     <span onclick="streamLink(this.parentElement.parentElement.id)" class="stream-name-text">
                     </span>
@@ -44,9 +49,6 @@
                 <div class="live-container">
                     <div class="live-indicator"></div>
                     <h4 class="live"></h4>
-                </div>
-                <div class="collection-bar-wrapper">
-                    <span class="collecting-bar"></span>
                 </div>
             </li>
         </ul>
@@ -79,9 +81,10 @@
     {
         startmuted: false,
         linkType: 'browser',
-        autoopen: false,
+        globalautoopen: false,
         autoopentype: 'browser'
     };
+    localStorage.setItem('settings', JSON.stringify(settings));
     let tileWrapper = document.getElementById('tile-wrapper');
     let streamTile = document.getElementById('place-holder');
     let streamElements = createTileArray('element');
@@ -136,9 +139,10 @@
         let newTile = streamTile.cloneNode(true);
         newTile.id = payload.login;
         if(streamers[payload.login].autocollect) {
+            newTile.querySelector('#collect-state').innerHTML = 'Toggle auto collect <br> Off';
             newTile.classList.add('auto-collect_on');
         }
-        newTile.children[1].src = payload.profile_image_url;
+        newTile.querySelector('img').src = payload.profile_image_url;
         newTile.children[0].children[0].children[0].checked = streamers[payload.login].autoopen;
         let streamName = document.createTextNode(payload.display_name);
         newTile.children[2].children[0].appendChild(streamName);
@@ -154,26 +158,31 @@
         ipcRenderer.send("open-stream-window")
     }
 
-    function streamLink(streamLinkId) {
+    function streamLink(stream) {
         getSettings();
-        let linkURL = "https://www.twitch.tv/" + streamLinkId;
-        console.log(streamLinkId)
-        streamers[streamLinkId].streamopen = true;
+        console.log(settings);
         try {
-            if(settings.linkType == 'browser') {
-                shell.openExternal(linkURL);
+            if(settings.linkType == 'stream-luv' && streamers[stream].autocollect) {
+                openAutoCollect(stream, 3);
+            }else if(settings.linkType == 'browser' && streamers[stream].autocollect) {
+                shell.openExternal("https://www.twitch.tv/" + stream);
+                openAutoCollect(stream, 2);
             } else if(settings.linkType == 'stream-luv') {
-                openAutoCollect(streamLinkId, 0);
+                openAutoCollect(stream, 1);
             } else {
-                shell.openExternal(linkURL);
+                shell.openExternal("https://www.twitch.tv/" + stream);
             }
-        } catch {
-            shell.openExternal(linkURL)
+            console.log('Set stream open: true');
+            streamers[stream].streamopen = true;
+        } catch(err) {
+            shell.openExternal("https://www.twitch.tv/" + stream);
+            console.log('Set stream open: true');
+            streamers[stream].streamopen = true;
         }
+        saveStreamers();
     }
 
     async function toggleAutoOpen(streamId, value) {
-        //TODO Change switch state based json value
         streamers[streamId].autoopen = value;
         saveStreamers();
         let live = await checkStreamLive(streamId);
@@ -192,13 +201,9 @@
             streamer = streamers[streamer];
             try {
                 let response = await checkStreamLive(streamer.name);
-                // response = response.data.data[0];
-                // let cleanedName = response.user_name.toLowerCase().replace(/ /g, '');
-                // So hard to believe this is an actual fix but can't find an issue
                 if(response) {
                     liveStreams.push(streamer.name);
-                }
-                
+                } 
             } catch (err) {
                 console.log(err);
             }
@@ -211,6 +216,7 @@
         return response.data.data[0] ? true : false;
     }
 
+    let goOfflineStreams = [];
     function setLiveState(liveStreams) {
         streamElements = createTileArray('element');
         getSettings();
@@ -218,10 +224,12 @@
         for (element of streamElements) {
             if (checkedStreams.includes(element) && streamers[element.id].autoopen && !streamers[element.id]
                 .streamopen) { //Live and auto open on
+                removeOfflineStream(element.id);
                 openStream(element.id);
                 changeElementLive(true, element);
                 streamers[element.id].live = true;
             } else if (checkedStreams.includes(element)) { //Live
+                removeOfflineStream(element.id);
                 changeElementLive(true, element);
                 try {
                     streamers[element.id].live = true;
@@ -232,10 +240,10 @@
                 changeElementLive(false, element);
                 try {
                     streamers[element.id].live = false;
+                    goOfflineStreams.push(element.id);
                     // Add delay to stop repeat autoopen in case of stream crashes.
                     setTimeout(() => {
-                        streamers[element.id].streamopen = false;
-                        saveStreamers();
+                        goOffline(goOfflineStreams);
                     }, 600000);
                 } catch (err) {
                     console.log(element.id)
@@ -251,16 +259,21 @@
     function openStream(stream) {
         getSettings();
         try {
-            if(settings.autoopentype == 'stream-luv') {
-            console.log('why tho')
-            openAutoCollect(stream, 0);
-            } else {
+            if(settings.autoopentype == 'stream-luv' && streamers[stream].autocollect) { //StreamLuv Autocollect
+                openAutoCollect(stream, 3);
+            }else if(settings.autoopentype == 'browser' && streamers[stream].autocollect) { //Browser Autocollect
+                openAutoCollect(stream, 2);
+            } else if(settings.autoopentype == 'stream-luv') { //StreamLuv
+                openAutoCollect(stream, 1);
+            } else { //Browser
                 shell.openExternal("https://www.twitch.tv/" + stream);
             }
+            console.log('Set stream open: true');
             streamers[stream].streamopen = true;
         } catch(err) {
             console.log(err);
             shell.openExternal("https://www.twitch.tv/" + stream);
+            console.log('Set stream open: true');
             streamers[stream].streamopen = true;
         }
         saveStreamers();
@@ -282,15 +295,26 @@
         }
     }
 
+    function goOffline(offlineStreams) {
+        getStreamers();
+        for(offlineStream of offlineStreams) {
+            console.log(streamers[offlineStream]);
+            streamers[offlineStream].streamopen = false;
+        }
+        saveStreamers();
+    }
+
+    function removeOfflineStream(id) {
+        goOfflineStreams = goOfflineStreams.filter(s => s != id);
+    }
+
     // Function to open Channel Point Collection 
     // Type 1: for StreamLuv window
-    // Type 2: Browser window with hidden window
+    // Type 2: Browser window with auto collect
     // Type 3: StreamLuv Window With auto collection
     function openAutoCollect(id, type) {
-        console.log(id);
-        if(true) {
-            ipcRenderer.send("open-auto-collect", {id, type});
-        }
+        console.log(type);
+        ipcRenderer.send("open-auto-collect", {id, type});
     }
 
     function createTileArray(type) {
@@ -333,12 +357,38 @@
     const menu = new Menu();
 
     menu.append(new MenuItem({
+        label: 'Open In Browser Window',
+        click() {
+            let linkTemp = settings.linkType;
+            settings.linkType = 'browser';
+            saveSettings();
+            streamLink(elementClick.id);
+            settings.linkType = linkTemp;
+        }
+    }))
+
+    menu.append(new MenuItem({
+        label: 'Open In StreamLuv',
+        click() {
+            let linkTemp = settings.linkType;
+            settings.linkType = 'stream-luv';
+            saveSettings();
+            streamLink(elementClick.id);
+            settings.linkType = linkTemp;
+        }
+    }))
+    
+    menu.append(new MenuItem({
+        type: 'separator'
+    }))
+
+    menu.append(new MenuItem({
         label: 'Auto Point Collection',
         click() {
             toggleAutoCollection(elementClick.id)
         }
     }))
-    
+
     menu.append(new MenuItem({
         type: 'separator'
     }))
@@ -358,7 +408,16 @@
         for (element of elements) {
             element.addEventListener('contextmenu', (e) => {
                 e.preventDefault();
-                elementClick = e.target.parentElement;
+                console.log(e.target.classList);
+                let classes = [];
+                for(c of e.target.classList) {
+                    classes.push(c);
+                }
+                if(compareClasses(classes)) {
+                    elementClick = e.target.parentElement
+                } else {
+                    elementClick = e.target.parentElement.parentElement;
+                }
                 menu.popup({
                     window: remote.getCurrentWindow()
                 })
@@ -366,14 +425,22 @@
         }
     }
 
+    function compareClasses(arr) {
+        let classes = ['stream-toggle', 'thumbnail', 'stream-name', 'live-container'];
+        return arr.some(c => classes.includes(c));
+    }
+
     function toggleAutoCollection(id) {
+        let collectMsg = document.getElementById(id).querySelector('#collect-state');
         getStreamers();
         let collectValue = streamers[id].autocollect;
         streamers[id].autocollect = !collectValue;
         collectValue = !collectValue
         if(collectValue) {
+            collectMsg.innerHTML = 'Toggle auto collect <br> Off';
             document.getElementById(id).classList.add('auto-collect_on');
         } else {
+            collectMsg.innerHTML = 'Toggle auto collect <br> On';
             document.getElementById(id).classList.remove('auto-collect_on');
         }
         console.log(collectValue);
@@ -385,6 +452,10 @@
     //Local Storage Handelers
     function getSettings() {
         settings = JSON.parse(localStorage.getItem('settings'));
+    }
+
+    function saveSettings() {
+        localStorage.setItem('settings', JSON.stringify(settings));
     }
 
     function getStreamers() {

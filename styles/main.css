@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css?family=Montserrat:500,400');
-
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@600&display=swap');
 body * {
     font-family: 'Montserrat', sans-serif;
 }
@@ -103,11 +103,47 @@ body {
     padding: 5px 0;
 }
 
+.img-wrapper {
+    position: relative;
+}
+
+.auto-collect-toggle-wrapper {
+    position: absolute;
+    background-color: #000000aa;
+    width: 62px;
+    height: 62px;
+    border-radius: 30px;
+    top: 4px;
+    left: -1px;
+    display: flex;
+    align-items: center;
+    opacity: 0;
+    box-sizing: border-box;
+    border: 2px solid aqua;
+    
+}
+
+.auto-collect-toggle-wrapper:hover {
+    transition: 0.2s ease-in-out;
+    cursor: pointer;
+    opacity: 1;
+}
+
+.toggle-auto-collect {
+    display: flex;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    font-size: 8.5pt;
+    font-family: 'Kanit';
+    line-height: 8.2pt;
+}
+
 .thumbnail {
     width: 60px;
     height: 60px;
     border-radius: 30px;
-    grid-column: 2;
+    /* grid-column: 3; */
     padding: 5px 0;
 }
 
@@ -129,43 +165,6 @@ body {
     color: #ff8000;
     font-weight: bold;
 }
-
-.collection-bar-wrapper {
-    height: 4px;
-    width: 100%;
-    grid-row: 2;
-    grid-column: 1/5;
-    overflow: hidden;
-}
-
-.collecting-bar {
-    height: 8px;
-    width: 100%;
-    display: flex;
-    border-radius: 5px;
-    background: linear-gradient(-90deg, #23a6d5 0%, #96cee2 50%, #23a6d5 60%);
-    background-size: 400%;
-    animation: gradientAnimate 3s ease infinite;
-    box-shadow: 0px 2px 5px #23a6d5;
-    margin-top: -4px;
-    /* change to flex when auto collecting */
-    display: none;
-}
-
-@keyframes gradientAnimate {
-   0% {
-        background-position: 100% 50%;
-        box-shadow: 0px 2px 5px #23a6d5;
-    }
-    50% {
-        box-shadow: 0px 2px 3px #23a6d588;
-    }
-	100% {
-        background-position: 0% 50%;
-        box-shadow: 0px 2px 5px #23a6d5;
-	}
-}
-
 
 /* Add Stream Button */
 .add-btn-container {

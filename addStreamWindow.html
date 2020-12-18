@@ -3,6 +3,7 @@
         <header>
         </header>
         <div class="menuItems">
+            <span id="err-msg">error</span>
             <input autofocus class="url-input" type="text" placeholder="Streamer">
         </div>
         <footer>
@@ -16,6 +17,11 @@
     const {
         ipcRenderer
     } = require('electron');
+    const axios = require('axios');
+    const {
+        APP_TOKEN,
+        getToken,
+    } = require('./secret.js');
 
     let streamInput = document.querySelector(".url-input");
     let streams = JSON.parse(localStorage.getItem('streamers')) || {};
@@ -24,10 +30,15 @@
         ipcRenderer.send("close-stream-window");
     }
 
-    function addStream() {
+    async function addStream() {
         stream = streamInput.value.toLowerCase().replace(/ /g, '');
+        let streamCheck = await verifyStream(stream);
+        if(!streamCheck) {
+            errorMessage(streamInput.value + ' is not a stream');
+            return;
+        }
         if (!stream == '') {
-            if (!streams.stream) {
+            if (!streams[stream]) {
                 streams[stream] = {
                     name: stream,
                     autoopen: false,
@@ -40,10 +51,43 @@
                 closeWindow();
             } else {
                 //Add notification
+                errorMessage(streamInput.value + ' has already been added.');
                 console.log("Stream already added");
             }
         }
     }
+
+    async function verifyStream(stream) {
+        let AUTH_TOKEN = await getToken();
+        axios.defaults.headers.common['Client-ID'] = APP_TOKEN;
+        axios.defaults.headers.common['Authorization'] = `Bearer ${AUTH_TOKEN}`;
+        let response = await axios.get('https://api.twitch.tv/helix/users?login='+stream);
+        response = response.data.data[0];
+        if (response == undefined) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+
+    //SECTION Error Message
+    let errorMsg = document.getElementById('err-msg');
+    streamInput.addEventListener('input',() => {
+        if(errorMsg.innerText != 'error') {
+            clearErrorMessage()
+        }
+    });
+    function errorMessage(msg) {
+        errorMsg.innerText = msg;
+        errorMsg.style.opacity = 1;
+    }
+    function clearErrorMessage() {
+        errorMsg.style.opacity = 0;
+        errorMsg.innerText = 'error'
+    }
+
+
 
 
     //Key shortcuts
@@ -84,6 +128,7 @@
 
     .menuItems {
         display: flex;
+        flex-direction: column;
         color: white;
         justify-content: center;
         align-items: center;
@@ -103,6 +148,12 @@
         outline: none;
         border-color: #000000;
         background-color: #141414;
+        margin-top: 4px;
+    }
+
+    #err-msg {
+        opacity: 0;
+        color: red;
     }
 
     footer {
