@@ -4,6 +4,7 @@ const {
     ipcMain,
     Tray,
     Menu,
+    shell,
     BrowserView
 } = require('electron');
 const windowStateKeeper = require('electron-window-state');
@@ -54,27 +55,30 @@ app.on('ready', function () {
     mainWindowState.manage(mainWindow);
 
     //Tray
-    tray = new Tray(iconPath);
-    //Menu Template
-    let template = [{
-            label: 'Open',
-            click: () => mainWindow.show()
-        },
-        {
-            type: 'separator'
-        },
-        {
-            label: 'Quit StreamLuv',
-            click: () => {
-                mainWindow.destroy();
-                app.quit();
+    if(process.platform == "win32") {
+        tray = new Tray(iconPath);
+        //Menu Template
+        let template = [{
+                label: 'Open',
+                click: () => mainWindow.show()
+            },
+            {
+                type: 'separator'
+            },
+            {
+                label: 'Quit StreamLuv',
+                click: () => {
+                    mainWindow.destroy();
+                    app.quit();
+                }
             }
-        }
-    ];
-    //Create Menu
-    const contextMenu = Menu.buildFromTemplate(template);
-    tray.setContextMenu(contextMenu);
-    tray.setToolTip('Stream Luv');
+        ];
+        
+        const contextMenu = Menu.buildFromTemplate(template);
+        tray.setContextMenu(contextMenu);
+        tray.setToolTip('Stream Luv');
+    }
+    
 });
 
 // Opening on startup
@@ -198,7 +202,8 @@ async function openWindow(stream, type) {
     let window = new BrowserWindow({
         webPreferences: {
             nodeIntegration: true,
-            webSecurity: false
+            webSecurity: false,
+            backgroundThrottling: false
         },
         x: streamWindowState.x,
         y: streamWindowState.y,
@@ -223,6 +228,21 @@ async function openWindow(stream, type) {
 
     view.webContents.setAudioMuted(startMuted ? startMuted : false);
     view.webContents.loadURL("https://www.twitch.tv/" + stream);
+
+    view.webContents.on('new-window', (e, url) => {
+        shell.openExternal(url);
+    });
+
+    view.webContents.on('did-navigate-in-page', (e, url) => {
+        let nameStart = url.lastIndexOf('/');
+        let streamName = url.slice(nameStart+1);
+        console.log(url)
+        if(url.indexOf('www.twitch.tv') > 0) {
+            console.log(streamName);
+            window.setTitle(streamName);
+            window.webContents.send('page-title', streamName);
+        }
+    })
 
     //SECTION Set Auto Collect Page
     if(type == 3) {
@@ -270,6 +290,9 @@ async function openWindow(stream, type) {
     collectionWindows[stream] = window;
     collectionViews[stream] = view;
     streamWindowState.manage(window);
+
+    //Debugging
+    window.webContents.toggleDevTools();
 }
 
 //SECTION
@@ -298,10 +321,6 @@ let collectionInterval = null;
 async function createChatCollect(stream) {
     console.log(stream);
     let chatWindow = new BrowserWindow({
-        webPreferences: {
-            pageVisibility: true,
-            backgroundThrottling: false
-        },
         show: false,
         title: stream
     });
@@ -332,9 +351,11 @@ async function autoCollect() {
         stream = pageList[stream];
         let claimPoints = await stream.$('.claimable-bonus__icon');
         if(claimPoints) {
-            console.log("Points Claimed.");
             setTimeout(() => {
-                claimPoints.click();
+                if (claimPoints) {
+                    console.log("Points Claimed.");
+                    claimPoints.click();
+                }
             }, 5000);
         }
     }

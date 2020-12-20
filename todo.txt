@@ -106,8 +106,9 @@
     -toggle settings
     -popout from window name
 
-[] Change window name on redirect
+[x] Change window name on redirect
+    -handle closing windows (alter key name in array and close and focus duplicates)
 
-[] Allow links to open in external browser
+[x] Allow links to open in external browser
 
-[] Channel Point Prediction Notifications?
+[x] Confirmation messages

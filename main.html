@@ -1,25 +1,37 @@
 <link rel="stylesheet" href="./styles/main.css">
+<link rel="stylesheet" href="./styles/message.css">
 <link rel="stylesheet" href="./styles/switch.css">
 <link rel="stylesheet" href="./styles/live-indicator.css">
 <link rel="stylesheet" href="./styles/scroll.css">
 <link rel="stylesheet" href="./styles/draggable.css">
 
 <body>
+    <div id="message-container">
+        <div class="message-wrapper">
+            <p id="message">Streamluv is now running auto collect on thetruemechmaster</p>
+            <span class="close-message" onclick="closeMessage()">
+                <svg width="24px" viewBox="0 0 10 10">
+                    <rect stroke-width="0" x="4.5" y="2" width="1" height="6" />
+                    <rect stroke-width="0" y="4.5" x="2" height="1" width="6" />
+                </svg>
+            </span>
+        </div>
+    </div>
     <nav class="control-bar">
         <strong><span>Stream</span>Luv</strong>
         <span onclick="openSettings()" class="settings-window">
-            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 32 32">
                 <path
                     d="M32,16v-4l-4.781-1.992c-0.133-0.375-0.273-0.738-0.445-1.094l1.93-4.805L25.875,3.25   l-4.762,1.961c-0.363-0.176-0.734-0.324-1.117-0.461L17.969,0h-4l-1.977,4.734c-0.398,0.141-0.781,0.289-1.16,0.469l-4.754-1.91   L3.25,6.121l1.938,4.711C5,11.219,4.848,11.613,4.703,12.02L0,14.031v4l4.707,1.961c0.145,0.406,0.301,0.801,0.488,1.188   l-1.902,4.742l2.828,2.828l4.723-1.945c0.379,0.18,0.766,0.324,1.164,0.461L14.031,32h4l1.98-4.758   c0.379-0.141,0.754-0.289,1.113-0.461l4.797,1.922l2.828-2.828l-1.969-4.773c0.168-0.359,0.305-0.723,0.438-1.094L32,17.969z    M15.969,22c-3.312,0-6-2.688-6-6s2.688-6,6-6s6,2.688,6,6S19.281,22,15.969,22z" />
             </svg>
         </span>
         <span onclick="minimizeWindow()" class="minimize-window">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+            <svg viewBox="0 0 32 32">
                 <line x1="0" y1="17" x2="32" y2="17" />
             </svg>
         </span>
         <span onclick="closeWindow()" class="close-window">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+            <svg viewBox="0 0 32 32">
                 <line x1="2" y1="2" x2="30" y2="30" />
                 <line x1="2" y1="30" x2="30" y2="2" />
             </svg>
@@ -58,7 +70,7 @@
         </div>
     </div>
 </body>
-
+<script src="./scripts/message.js"></script>
 <script>
     const axios = require('axios');
     const {
@@ -184,6 +196,7 @@
 
     async function toggleAutoOpen(streamId, value) {
         streamers[streamId].autoopen = value;
+        addMessage(`${streamId} auto open ${value ? 'on' : 'off'}`);
         saveStreamers();
         let live = await checkStreamLive(streamId);
         if(live && streamers[streamId].autoopen && !streamers[streamId].streamopen) {
@@ -262,6 +275,7 @@
             if(settings.autoopentype == 'stream-luv' && streamers[stream].autocollect) { //StreamLuv Autocollect
                 openAutoCollect(stream, 3);
             }else if(settings.autoopentype == 'browser' && streamers[stream].autocollect) { //Browser Autocollect
+                shell.openExternal("https://www.twitch.tv/" + stream);
                 openAutoCollect(stream, 2);
             } else if(settings.autoopentype == 'stream-luv') { //StreamLuv
                 openAutoCollect(stream, 1);
@@ -443,7 +457,7 @@
             collectMsg.innerHTML = 'Toggle auto collect <br> On';
             document.getElementById(id).classList.remove('auto-collect_on');
         }
-        console.log(collectValue);
+        addMessage(`${collectValue ? 'Now' : 'No longer'} auto collecting ${id}`);
         saveStreamers();
     }
 
