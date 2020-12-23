@@ -13,15 +13,12 @@
     </div>
 </body>
 
+<script src="./scripts/secret.js"></script>
+<script src="./scripts/apiCalls.js"></script>
 <script>
     const {
         ipcRenderer
     } = require('electron');
-    const axios = require('axios');
-    const {
-        APP_TOKEN,
-        getToken,
-    } = require('./secret.js');
 
     let streamInput = document.querySelector(".url-input");
     let streams = JSON.parse(localStorage.getItem('streamers')) || {};
@@ -32,7 +29,7 @@
 
     async function addStream() {
         stream = streamInput.value.toLowerCase().replace(/ /g, '');
-        let streamCheck = await verifyStream(stream);
+        let streamCheck = await apiCalls.getStreamer(stream);
         if(!streamCheck) {
             errorMessage(streamInput.value + ' is not a stream');
             return;
@@ -44,7 +41,8 @@
                     autoopen: false,
                     live: false,
                     streamopen: false,
-                    autocollect: false
+                    autocollect: false,
+                    wentoffline: 0
                 };
                 localStorage.setItem("streamers", JSON.stringify(streams));
                 ipcRenderer.send("stream-added");
@@ -56,20 +54,6 @@
             }
         }
     }
-
-    async function verifyStream(stream) {
-        let AUTH_TOKEN = await getToken();
-        axios.defaults.headers.common['Client-ID'] = APP_TOKEN;
-        axios.defaults.headers.common['Authorization'] = `Bearer ${AUTH_TOKEN}`;
-        let response = await axios.get('https://api.twitch.tv/helix/users?login='+stream);
-        response = response.data.data[0];
-        if (response == undefined) {
-            return false;
-        } else {
-            return true;
-        }
-    }
-
 
     //SECTION Error Message
     let errorMsg = document.getElementById('err-msg');

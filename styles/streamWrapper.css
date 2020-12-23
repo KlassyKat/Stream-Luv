@@ -8,7 +8,7 @@ body {
     font-size: 19px;
     padding: 0 0 0 8px;
     display: grid;
-    grid-template-columns: auto 1fr 32px 32px 32px 32px;
+    grid-template-columns: auto 1fr 32px 32px 10px 32px 32px 32px 32px;
     background-color: #0d0d0d;
     -webkit-app-region: drag;
     align-items: center;
@@ -31,8 +31,22 @@ body {
     cursor: pointer;
 }
 
-.mute-window {
+.history-back {
     grid-column: 3;
+    -webkit-app-region: no-drag;
+    stroke: #707070;
+    fill: #707070;
+}
+
+.history-forward {
+    grid-column: 4;
+    -webkit-app-region: no-drag;
+    stroke: #707070;
+    fill: #707070;
+}
+
+.mute-window {
+    grid-column: 6;
     -webkit-app-region: no-drag;
     stroke: #707070;
     fill: #707070;
@@ -43,19 +57,19 @@ body {
 }
 
 .minimize-window {
-    grid-column: 4;
+    grid-column: 7;
     -webkit-app-region: no-drag;
     fill: #707070;
 }
 
 .maximize-window {
-    grid-column: 5;
+    grid-column: 8;
     -webkit-app-region: no-drag;
     fill: #707070;
 }
 
 .close-window {
-    grid-column: 6;
+    grid-column: 9;
     -webkit-app-region: no-drag;
     stroke: #707070;
     stroke-width: 5;

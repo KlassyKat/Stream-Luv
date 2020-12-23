@@ -19,6 +19,15 @@
     </div>
     <nav class="control-bar">
         <strong><span>Stream</span>Luv</strong>
+        <span onclick="pause()" class="pause-window">
+            <svg viewBox="0 0 32 32" id="pause-auto">
+                <rect x="4" y="2" width="6" height="28" />
+                <rect x="22" y="2" width="6" height="28" />
+            </svg>
+            <svg viewBox="0 0 32 32" id="play-auto">
+                <path d="M28,16l-24,14l0,-28l24,14Z" />
+            </svg>
+        </span>
         <span onclick="openSettings()" class="settings-window">
             <svg viewBox="0 0 32 32">
                 <path
@@ -71,8 +80,9 @@
     </div>
 </body>
 <script src="./scripts/message.js"></script>
+<script src="./scripts/secret.js"></script>
+<script src="./scripts/apiCalls.js"></script>
 <script>
-    const axios = require('axios');
     const {
         ipcRenderer,
         shell,
@@ -82,10 +92,6 @@
         Menu,
         MenuItem
     } = remote;
-    const {
-        APP_TOKEN,
-        getToken,
-    } = require('./secret.js');
     const Sortable = require('sortablejs');
 
     let streamers = JSON.parse(localStorage.getItem('streamers'));
@@ -94,7 +100,8 @@
         startmuted: false,
         linkType: 'browser',
         globalautoopen: false,
-        autoopentype: 'browser'
+        autoopentype: 'browser',
+        pause: false
     };
     localStorage.setItem('settings', JSON.stringify(settings));
     let tileWrapper = document.getElementById('tile-wrapper');
@@ -119,30 +126,19 @@
     })
 
     async function loadStreamers() {
-        let AUTH_TOKEN = await getToken();
-        axios.defaults.headers.common['Client-ID'] = APP_TOKEN;
-        axios.defaults.headers.common['Authorization'] = `Bearer ${AUTH_TOKEN}`;
-        for (let streamer in streamers) {
+        for(streamer in streamers) {
             streamer = streamers[streamer];
-            try {
-                let response = await axios.get('https://api.twitch.tv/helix/users?login=' + streamer.name);
-                response = response.data.data[0];
-                console.log(response)
-                if (response == undefined) {
-                    delete streamers[streamer];
-                }
-                checkTiles(response);
-            } catch (err) {
-                console.log(err);
+            let response = await apiCalls.getStreamer(streamer.name);
+            if(response == undefined) {
+                delete streamers[streamer];
             }
+            checkTiles(response);
         }
-        return;
     }
 
     function checkTiles(payload) {
         let tileList = createTileArray('id');
-        let checkList = tileList.filter(id => id == payload.login)
-        if (checkList.length < 1) {
+        if (!tileList.includes(payload.login)) {
             createTile(payload);
         }
     }
@@ -160,7 +156,7 @@
         newTile.children[2].children[0].appendChild(streamName);
         streamTile.parentElement.lastChild.after(newTile);
         streamElements = createTileArray('element');
-        addEventListeners(streamElements);
+        addRightClickMenu(streamElements[streamElements.length-1]);
         liveCheck();
     }
 
@@ -186,10 +182,12 @@
             }
             console.log('Set stream open: true');
             streamers[stream].streamopen = true;
+            streamers[stream].wentoffline = Date.now();
         } catch(err) {
             shell.openExternal("https://www.twitch.tv/" + stream);
             console.log('Set stream open: true');
             streamers[stream].streamopen = true;
+            streamers[stream].wentoffline = Date.now();
         }
         saveStreamers();
     }
@@ -198,14 +196,10 @@
         streamers[streamId].autoopen = value;
         addMessage(`${streamId} auto open ${value ? 'on' : 'off'}`);
         saveStreamers();
-        let live = await checkStreamLive(streamId);
-        if(live && streamers[streamId].autoopen && !streamers[streamId].streamopen) {
+        let live = await apiCalls.checkStreamLive(streamId);
+        if(live && streamers[streamId].autoopen && !streamers[streamId].streamopen && !settings.pause) {
             openStream(streamId);
         }
-    }
-
-    function setSwitchState() {
-        return;
     }
 
     async function liveCheck() {
@@ -213,7 +207,7 @@
         for (let streamer in streamers) {
             streamer = streamers[streamer];
             try {
-                let response = await checkStreamLive(streamer.name);
+                let response = await apiCalls.checkStreamLive(streamer.name);
                 if(response) {
                     liveStreams.push(streamer.name);
                 } 
@@ -224,25 +218,18 @@
         setLiveState(liveStreams);
     }
 
-    async function checkStreamLive(stream) {
-        let response =  await axios.get('https://api.twitch.tv/helix/streams?user_login=' + stream);
-        return response.data.data[0] ? true : false;
-    }
-
-    let goOfflineStreams = [];
     function setLiveState(liveStreams) {
         streamElements = createTileArray('element');
         getSettings();
         let checkedStreams = streamElements.filter(element => liveStreams.includes(element.id));
         for (element of streamElements) {
             if (checkedStreams.includes(element) && streamers[element.id].autoopen && !streamers[element.id]
-                .streamopen) { //Live and auto open on
-                removeOfflineStream(element.id);
+                .streamopen && !settings.pause) { //Live and auto open on
+                console.log('Auto open stream')
                 openStream(element.id);
                 changeElementLive(true, element);
                 streamers[element.id].live = true;
             } else if (checkedStreams.includes(element)) { //Live
-                removeOfflineStream(element.id);
                 changeElementLive(true, element);
                 try {
                     streamers[element.id].live = true;
@@ -251,16 +238,13 @@
                 }
             } else { //Offline
                 changeElementLive(false, element);
-                try {
+                if(streamers[element.id].live) {
+                    streamers[element.id].wentoffline = Date.now();
+                    console.log(streamers[element.id].wentoffline);
                     streamers[element.id].live = false;
-                    goOfflineStreams.push(element.id);
-                    // Add delay to stop repeat autoopen in case of stream crashes.
-                    setTimeout(() => {
-                        goOffline(goOfflineStreams);
-                    }, 600000);
-                } catch (err) {
-                    console.log(element.id)
-                    console.log(err);
+                } else if((Date.now() - 600000) > streamers[element.id].wentoffline && !streamers[element.id].live) {
+                    console.log('Set stream open false')
+                    streamers[element.id].streamopen = false;
                 }
             }
         }
@@ -284,11 +268,13 @@
             }
             console.log('Set stream open: true');
             streamers[stream].streamopen = true;
+            streamers[stream].wentoffline = Date.now();
         } catch(err) {
             console.log(err);
             shell.openExternal("https://www.twitch.tv/" + stream);
             console.log('Set stream open: true');
             streamers[stream].streamopen = true;
+            streamers[stream].wentoffline = Date.now();
         }
         saveStreamers();
     }
@@ -307,19 +293,6 @@
             word.classList.remove('live-state_on');
             word.classList.remove('live_on');
         }
-    }
-
-    function goOffline(offlineStreams) {
-        getStreamers();
-        for(offlineStream of offlineStreams) {
-            console.log(streamers[offlineStream]);
-            streamers[offlineStream].streamopen = false;
-        }
-        saveStreamers();
-    }
-
-    function removeOfflineStream(id) {
-        goOfflineStreams = goOfflineStreams.filter(s => s != id);
     }
 
     // Function to open Channel Point Collection 
@@ -346,6 +319,37 @@
         return tileList;
     }
 
+    // pause scope
+    {   
+        ipcRenderer.on('pause-auto', e => {
+            pause();
+        })
+        let pauseBtn = document.getElementById('pause-auto');
+        let playBtn = document.getElementById('play-auto');
+        if(settings.pause) {
+            playBtn.style.display = 'block';
+        } else {
+            pauseBtn.style.display = 'block';
+        }
+        ipcRenderer.send('change-tray', settings.pause);
+        function pause() {
+            getSettings();
+            settings.pause = !settings.pause;
+            ipcRenderer.send('change-tray', settings.pause);
+            saveSettings();
+            if(settings.pause) {
+                pauseBtn.style.display = 'none';
+                playBtn.style.display = 'block';
+                
+            } else {
+                liveCheck();
+                playBtn.style.display = 'none';
+                pauseBtn.style.display = 'block';
+            }
+            addMessage(`StreamLuv auto open is now ${settings.pause ? 'paused' : 'active'}.`);
+        }
+    }
+    
     function openSettings() {
         ipcRenderer.send('open-setting-window');
     }
@@ -417,26 +421,23 @@
         }
     }))
 
-    //! Context Menu Bug
-    function addEventListeners(elements) {
-        for (element of elements) {
-            element.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                console.log(e.target.classList);
-                let classes = [];
-                for(c of e.target.classList) {
-                    classes.push(c);
-                }
-                if(compareClasses(classes)) {
-                    elementClick = e.target.parentElement
-                } else {
-                    elementClick = e.target.parentElement.parentElement;
-                }
-                menu.popup({
-                    window: remote.getCurrentWindow()
-                })
+    // Context Menu
+    function addRightClickMenu(element) {
+        element.addEventListener('contextmenu', e => {
+            e.preventDefault();
+            let classes = [];
+            for(let c of e.target.classList) {
+                classes.push(c);
+            }
+            if(compareClasses(classes)) {
+                elementClick = e.target.parentElement;
+            } else {
+                elementClick = e.target.parentElement.parentElement;
+            }
+            menu.popup({
+                window: remote.getCurrentWindow()
             })
-        }
+        })
     }
 
     function compareClasses(arr) {
@@ -466,6 +467,7 @@
     //Local Storage Handelers
     function getSettings() {
         settings = JSON.parse(localStorage.getItem('settings'));
+        return settings;
     }
 
     function saveSettings() {

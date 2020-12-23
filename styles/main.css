@@ -17,7 +17,7 @@ body {
     font-size: 19px;
     padding: 0 0 0 8px;
     display: grid;
-    grid-template-columns: auto 1fr 32px 32px 32px;
+    grid-template-columns: auto 1fr 32px 32px 32px 32px;
     background-color: #0d0d0d;
     -webkit-app-region: drag;
     align-items: center;
@@ -45,22 +45,37 @@ body {
     background-color: #222;
 }
 
-.settings-window {
+.pause-window {
     grid-column: 3;
     -webkit-app-region: no-drag;
     stroke: #707070;
     fill: #707070;
 }
 
-.minimize-window {
+#pause-auto {
+    display: none;
+}
+
+#play-auto {
+    display: none;
+}
+
+.settings-window {
     grid-column: 4;
+    -webkit-app-region: no-drag;
+    stroke: #707070;
+    fill: #707070;
+}
+
+.minimize-window {
+    grid-column: 5;
     -webkit-app-region: no-drag;
     stroke: #707070;
     stroke-width: 5;
 }
 
 .close-window {
-    grid-column: 5;
+    grid-column: 6;
     -webkit-app-region: no-drag;
     stroke: #707070;
     stroke-width: 5;

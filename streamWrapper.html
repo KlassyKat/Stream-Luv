@@ -3,6 +3,16 @@
 <body>
     <nav class="control-bar">
         <strong id="window-title">Placeholder</strong>
+        <span onclick="back()" class="history-back">
+            <svg viewBox="0 0 32 32">
+                <path d="M22,28l-12,-12l12,-12" style="fill:none;stroke-width:4.2px;" />
+            </svg>
+        </span>
+        <span onclick="forward()" class="history-forward">
+            <svg viewBox="0 0 32 32">
+                <path d="M14,28l12,-12l-12,-12" style="fill:none;stroke-width:4.2px;" />
+            </svg>
+        </span>
         <span onclick="toggleMute()" class="mute-window">
             <svg  id="sound-icon" viewBox="0 0 32 32"
                 style="stroke-linejoin:round;">
@@ -61,11 +71,27 @@
         document.getElementById('window-title').innerHTML = streamPage;
     })
 
+    ipcRenderer.on('new-page-title', (e, data) => {
+        document.getElementById('window-title').innerHTML = data;
+    })
+
+    document.addEventListener('visibilitychange', (e) => {
+        console.log('Visibility: ' + e);
+    })
+
     //Start Muted
     if(settings.startmuted) {
         mute = true;
         soundIcon.style.display = 'none';
         muteIcon.style.display = 'block';
+    }
+
+    function back() {
+        ipcRenderer.send('history-back', streamPage);
+    }
+
+    function forward() {
+        ipcRenderer.send('history-forward', streamPage);
     }
 
     function toggleMute() {
@@ -88,6 +114,9 @@
     function maximizeWindow() {
         ipcRenderer.send('maximize-stream-shell', streamPage);
     }
+    ipcRenderer.on('proper-close', e => {
+        ipcRenderer.send('close-stream-alt', streamPage);
+    })
     function closeWindow() {
         ipcRenderer.send('close-stream-shell', streamPage);
     }

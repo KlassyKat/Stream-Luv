@@ -21,7 +21,8 @@ let streamWindowState;
 const iconPath = `${__dirname}/buildResources/icon.ico`;
 let tray = null;
 
-app.allowRendererProcessReuse = true;
+// app.allowRendererProcessReuse = true;
+app.disableHardwareAcceleration();
 
 app.on('ready', function () {
 
@@ -55,12 +56,20 @@ app.on('ready', function () {
     mainWindowState.manage(mainWindow);
 
     //Tray
-    if(process.platform == "win32") {
+    if(process.platform == "win32" || process.platform == "darwin") {
         tray = new Tray(iconPath);
         //Menu Template
         let template = [{
                 label: 'Open',
                 click: () => mainWindow.show()
+            },
+            {
+                label: 'Pause',
+                click: () => {
+                    mainWindow.webContents.send('pause-auto');
+                },
+                type: 'checkbox',
+                checked: false
             },
             {
                 type: 'separator'
@@ -77,6 +86,10 @@ app.on('ready', function () {
         const contextMenu = Menu.buildFromTemplate(template);
         tray.setContextMenu(contextMenu);
         tray.setToolTip('Stream Luv');
+        ipcMain.on('change-tray', (e, data) => {
+            contextMenu.items[1].checked = data;
+            // tray.setContextMenu(contextMenu);
+        })
     }
     
 });
@@ -166,7 +179,7 @@ ipcMain.on('close-setting-window', function () {
 // Puppeteer Auto Channel Point Collection
 let collectionWindows = {};
 let collectionViews = {};
-// let browser;
+let browser;
 startAutoCollection();
 async function startAutoCollection() {
     await pie.initialize(app);
@@ -233,14 +246,21 @@ async function openWindow(stream, type) {
         shell.openExternal(url);
     });
 
+    //www.twitch.tv/klassykat?refferal=raid
     view.webContents.on('did-navigate-in-page', (e, url) => {
         let nameStart = url.lastIndexOf('/');
-        let streamName = url.slice(nameStart+1);
-        console.log(url)
+        let nameEnd = url.lastIndexOf('?');
+        let streamName;
+        if(nameEnd > -1) {
+            streamName = url.slice(nameStart+1, nameEnd);
+        } else {
+            streamName = url.slice(nameStart+1);
+        }
+        console.log(url);
         if(url.indexOf('www.twitch.tv') > 0) {
             console.log(streamName);
             window.setTitle(streamName);
-            window.webContents.send('page-title', streamName);
+            window.webContents.send('new-page-title', streamName);
         }
     })
 
@@ -281,6 +301,10 @@ async function openWindow(stream, type) {
         })
     })
 
+    window.on('close', e => {
+        window.webContents.send('proper-close');
+    })
+
     await window.loadFile(`${__dirname}/streamWrapper.html`);
     window.webContents.send('page-title', stream);
     window.webContents.on('will-navigate', (e, url) => {
@@ -297,6 +321,12 @@ async function openWindow(stream, type) {
 
 //SECTION
 //Stream Shell window controll
+ipcMain.on('history-back', (e, data) => {
+    collectionViews[data].webContents.goBack();
+})
+ipcMain.on('history-forward', (e, data) => {
+    collectionViews[data].webContents.goForward();
+})
 ipcMain.on('toggle-stream-mute', (e, data) => {
     collectionViews[data.window].webContents.setAudioMuted(data.val);
 })
@@ -307,8 +337,11 @@ ipcMain.on('maximize-stream-shell', (e, data) => {
     collectionWindows[data].isMaximized() ? collectionWindows[data].unmaximize() : collectionWindows[data].maximize();
 })
 ipcMain.on('close-stream-shell', async(e, data) => {
-    console.log('close:' + data);
     await collectionWindows[data].close();
+});
+ipcMain.on('close-stream-alt', async(e, data) => {
+    console.log('Close: ' + data);
+    // await collectionWindows[data].close();
     await collectionViews[data].destroy();
     delete collectionWindows[data];
     delete collectionViews[data];
@@ -347,7 +380,7 @@ async function createChatCollect(stream) {
 
 async function autoCollect() {
     let pageList = await browser.pages();
-    for(stream in pageList) {
+    for(let stream in pageList) {
         stream = pageList[stream];
         let claimPoints = await stream.$('.claimable-bonus__icon');
         if(claimPoints) {

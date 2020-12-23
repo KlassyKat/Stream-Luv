@@ -112,3 +112,9 @@
 [x] Allow links to open in external browser
 
 [x] Confirmation messages
+
+[x] Add history back/forward buttons
+
+[] Keep viewership on stream minimize
+    -Hide the window
+    -Stay on the taskbar
