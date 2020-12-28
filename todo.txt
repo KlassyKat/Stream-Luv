@@ -118,3 +118,5 @@
 [] Keep viewership on stream minimize
     -Hide the window
     -Stay on the taskbar
+
+[] Browser window tile link opens both(maybe when auto open streamluv is active)

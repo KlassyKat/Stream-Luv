@@ -14,8 +14,6 @@
     } = require('electron');
     const windowStateKeeper = require('electron-window-state');
 
-    const pie = require('puppeteer-in-electron');
-    const puppeteer = require('puppeteer-core');
 
 
     let mainWindow;
@@ -184,9 +182,14 @@
     // Puppeteer Auto Channel Point Collection
     let collectionWindows = {};
     let collectionViews = {};
+    let collectionKeys = [];
+    // let collectionPages = {};
+    let collectionInterval = null;
     let browser;
+    const pie = require('puppeteer-in-electron');
     startAutoCollection();
     async function startAutoCollection() {
+        const puppeteer = require('puppeteer-core');
         await pie.initialize(app);
         browser = await pie.connect(app, puppeteer);
     }
@@ -200,18 +203,26 @@
             id
         } = args;
         console.log(type);
-        if(type == 2) {
-            console.log('trying type 2');
-            createChatCollect(id);
+        if(type == 1) {
+            openWindow(id);
+        } else if(type == 2) {
+            browserCollection(id);
         } else {
-            openWindow(id, type);
+            if(collectionKeys.indexOf(id) < 0) {
+                collectionKeys.push(id);
+            }
+            openWindow(id);
         }
-        
+        if(type == 3 || type == 2) {
+            if(!collectionInterval) {
+                collectionInterval = setInterval(autoCollect, 10000);
+            }
+        }
     });
 
     //SECTION Stream shell windows
     let startMuted = false;
-    async function openWindow(stream, type) {
+    async function openWindow(stream) {
         if (collectionWindows[stream]) {
             collectionWindows[stream].focus();
             return;
@@ -270,11 +281,6 @@
         });
 
         //SECTION Set Auto Collect Page
-        if(type == 3) {
-            console.log('trying type 3');
-            createChatCollect(stream);
-        }
-        //Window Menu
         let windowMenuTemplate = [
             {
                 label: 'Reload',
@@ -312,9 +318,9 @@
 
         await window.loadFile(`${__dirname}/streamWrapper.html`);
         window.webContents.send('page-title', stream);
-        window.webContents.on('will-navigate', (e, url) => {
-            console.log(url);
-        });
+        // window.webContents.on('will-navigate', (e, url) => {
+        //     console.log(url);
+        // })
 
         collectionWindows[stream] = window;
         collectionViews[stream] = view;
@@ -350,51 +356,45 @@
         await collectionViews[data].destroy();
         delete collectionWindows[data];
         delete collectionViews[data];
+        if(collectionKeys.indexOf(data) > -1) {
+            collectionKeys.splice(collectionKeys.indexOf(data), 1);
+        }
     });
 
 
-    //SECTION Auto Collection
-    let chatCollects = [];
-    let collectionInterval = null;
-    async function createChatCollect(stream) {
-        console.log(stream);
-        let chatWindow = new BrowserWindow({
-            show: false,
-            title: stream
-        });
-        let chatView = new BrowserView();
-        chatWindow.setBrowserView(chatView);
-        chatView.setBounds({
-            x: 0,
-            y: 0,
-            width: chatWindow.getBounds().width - 16,
-            height: chatWindow.getBounds().height - 59
-        });
-        chatView.webContents.loadURL(`https://www.twitch.tv/popout/${stream}/chat?popout=`);
-        chatCollects[stream] = await pie.getPage(browser, chatWindow);
-        if(!collectionInterval) {
-            collectionInterval = setInterval(autoCollect, 10000);
+    //SECTION Browser Collection
+    //Remove once offline
+    function browserCollection(stream) {
+        let browserCollectView = new BrowserView();
+        // browserCollectView.webContents.setAudioMuted(true);
+        browserCollectView.webContents.loadURL("https://www.twitch.tv/" + stream);
+        collectionViews[stream] = browserCollectView;
+        if(collectionKeys.indexOf(stream) < 0) {
+            collectionKeys.push(stream);
         }
-
-        chatWindow.on('close', async () => {
-            chatWindow.close();
-            // chatView.destroy();
-        });
-
     }
+
+
     async function autoCollect() {
-        let pageList = await browser.pages();
-        for(let stream in pageList) {
-            stream = pageList[stream];
-            let claimPoints = await stream.$('.claimable-bonus__icon');
-            if(claimPoints) {
-                setTimeout(() => {
-                    if (claimPoints) {
-                        console.log("Points Claimed.");
-                        claimPoints.click();
-                    }
-                }, 5000);
+        console.log('Auto Collect:' + collectionKeys);
+        for(let i of collectionKeys) {
+            let page = await pie.getPage(browser, collectionViews[i]);
+            if(page) {
+                console.log('Page: ' + i);
+                let claimPoints = await page.$('.claimable-bonus__icon');
+                if(claimPoints) {
+                    setTimeout(() => {
+                        if (claimPoints) {
+                            console.log("Points Claimed.");
+                            claimPoints.click();
+                        }
+                    }, 5000);
+                }
             }
+        }
+        if(collectionKeys.length == 0) {
+            clearInterval((collectionInterval));
+            collectionInterval = null;
         }
     }
 
