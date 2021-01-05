@@ -119,4 +119,4 @@
     -Hide the window
     -Stay on the taskbar
 
-[] Browser window tile link opens both(maybe when auto open streamluv is active)
+[x] Browser window tile link opens both(maybe when auto open streamluv is active)

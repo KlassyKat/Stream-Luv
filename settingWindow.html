@@ -45,7 +45,7 @@
                 </div>
             </div>
             <span></span>
-            <button id="app-info">
+            <button onclick="openInfoWindow()" id="app-info">
                 <svg width="100%" height="100%" viewBox="0 0 299 299"
                     style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
                     <path
@@ -55,7 +55,7 @@
                 </svg>
             </button>
             <span></span>
-            <button id="support-me">&#10084</button>
+            <button onclick="openSupportWindow()" id="support-me">&#10084</button>
         </div>
         <div class="scroll-wrapper">
             <div class="menu-items">
@@ -319,4 +319,14 @@
     function saveSettings() {
         localStorage.setItem('settings', JSON.stringify(settings));
     }
+
+
+    function openSupportWindow() {
+        ipcRenderer.send('open-support-window');
+    }
+    function openInfoWindow() {
+        ipcRenderer.send('open-info-window');
+    }
+
+
 </script>

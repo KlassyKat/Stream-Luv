@@ -14,13 +14,17 @@ const windowStateKeeper = require('electron-window-state');
 let mainWindow;
 let addStreamWindow;
 let settingWindow;
+let supportWindow;
+let infoWindow;
 let mainWindowState;
 let streamWindowState;
 const iconPath = `${__dirname}/buildResources/icon.ico`;
 let tray = null;
 
-// app.allowRendererProcessReuse = true;
+app.allowRendererProcessReuse = true;
 app.disableHardwareAcceleration();
+//This good?
+app.commandLine.appendSwitch("disable-renderer-backgrounding");
 
 app.on('ready', function () {
 
@@ -201,7 +205,7 @@ ipcMain.on('open-auto-collect', async (e, args) => {
     if(type == 1) {
         openWindow(id);
     } else if(type == 2) {
-        browserCollection(id);
+        console.log('We said fuck it');
     } else {
         if(collectionKeys.indexOf(id) < 0) {
             collectionKeys.push(id);
@@ -250,7 +254,7 @@ async function openWindow(stream) {
         height: streamWindowState.height - 32
     });
 
-    view.webContents.setAudioMuted(startMuted ? startMuted : false);
+    view.webContents.setAudioMuted(startMuted);
     view.webContents.loadURL("https://www.twitch.tv/" + stream);
 
     view.webContents.on('new-window', (e, url) => {
@@ -259,7 +263,9 @@ async function openWindow(stream) {
 
     //www.twitch.tv/klassykat?refferal=raid
     view.webContents.on('did-navigate-in-page', (e, url) => {
-        let nameStart = url.lastIndexOf('/');
+        // let nameStart = url.lastIndexOf('/');
+        let nameStart = url.indexOf('/', 16);
+        console.log(nameStart);
         let nameEnd = url.lastIndexOf('?');
         let streamName;
         if(nameEnd > -1) {
@@ -307,6 +313,10 @@ async function openWindow(stream) {
         })
     })
 
+    window.on('hide', () => {
+        console.log('Toodles UwU');
+    })
+
     window.on('close', e => {
         window.webContents.send('proper-close');
     })
@@ -322,7 +332,7 @@ async function openWindow(stream) {
     streamWindowState.manage(window);
 
     //Debugging
-    window.webContents.toggleDevTools();
+    // window.webContents.toggleDevTools();
 }
 
 //SECTION
@@ -356,22 +366,8 @@ ipcMain.on('close-stream-alt', async(e, data) => {
     }
 });
 
-
-//SECTION Browser Collection
-//Remove once offline
-function browserCollection(stream) {
-    let browserCollectView = new BrowserView();
-    // browserCollectView.webContents.setAudioMuted(true);
-    browserCollectView.webContents.loadURL("https://www.twitch.tv/" + stream);
-    collectionViews[stream] = browserCollectView;
-    if(collectionKeys.indexOf(stream) < 0) {
-        collectionKeys.push(stream);
-    }
-}
-
-
 async function autoCollect() {
-    console.log('Auto Collect:' + collectionKeys);
+    console.log('Auto Collect: ' + collectionKeys);
     for(let i of collectionKeys) {
         let page = await pie.getPage(browser, collectionViews[i]);
         if(page) {
@@ -551,9 +547,60 @@ ipcMain.on('set-start-muted', (e, data) => {
     }
 })
 
+
 //SECTION Load Settings
 ipcMain.on('load-settings', (e, data) => {
     if(data) {
         startMuted = data.startmuted;
     }
+})
+
+ipcMain.on('open-support-window', () => {
+    supportWindow = new BrowserWindow({
+        webPreferences: {
+            nodeIntegration: true
+        },
+        x: mainWindowState.x,
+        y: mainWindowState.y,
+        width: 600,
+        height: 300,
+        resizeable: false,
+        backgroundColor: '#212121',
+        frame: false
+    });
+    supportWindow.setResizable(false); //Workaround
+    supportWindow.loadFile(`${__dirname}/support.html`);
+
+    supportWindow.on('closed', () => {
+        supportWindow = null;
+    })
+})
+
+ipcMain.on('open-info-window', () => {
+    infoWindow = new BrowserWindow({
+        webPreferences: {
+            nodeIntegration: true
+        },
+        x: mainWindowState.x,
+        y: mainWindowState.y,
+        width: 600,
+        height: 300,
+        resizeable: false,
+        backgroundColor: '#212121',
+        frame: false
+    });
+    infoWindow.setResizable(false); //Workaround
+    infoWindow.loadFile(`${__dirname}/info.html`);
+
+    infoWindow.on('closed', () => {
+        infoWindow = null;
+    })
+})
+
+ipcMain.on('close-support-window', () => {
+    supportWindow.close();
+})
+
+ipcMain.on('close-info-window', () => {
+    infoWindow.close();
 })

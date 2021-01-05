@@ -1,0 +1,23 @@
+<link rel="stylesheet" href="support.css">
+<body>
+    <nav class="control-bar">
+        <span></span>
+        <span onclick="closeWindow()" class="close-window">
+            <svg viewBox="0 0 32 32">
+                <line x1="2" y1="2" x2="30" y2="30" />
+                <line x1="2" y1="30" x2="30" y2="2" />
+            </svg>
+        </span>
+    </nav>
+    <div class="container">
+        
+    </div>
+</body>
+
+<script>
+    let { ipcRenderer } = require('electron');
+
+    function closeWindow() {
+        ipcRenderer.send('close-support-window');
+    }
+</script>

@@ -1,6 +1,6 @@
 {
   "name": "stream-luv",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "Application for auto opening your favorite streams and giving support... automagically",
   "main": "bundle.js",
   "repository": {

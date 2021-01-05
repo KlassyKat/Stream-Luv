@@ -1,0 +1,33 @@
+body, body *{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.control-bar {
+    height: 32px;
+    font-size: 19px;
+    padding: 0 0 0 8px;
+    display: grid;
+    grid-template-columns: 1fr 32px;
+    background-color: #0d0d0d;
+    -webkit-app-region: drag;
+    align-items: center;
+}
+
+/* control bar */
+.control-bar>span {
+    padding: 7px;
+    cursor: pointer;
+}
+
+.control-bar>span:hover {
+    background-color: #222;
+}
+
+.close-window {
+    -webkit-app-region: no-drag;
+    stroke: #707070;
+    fill: #707070;
+    stroke-width: 5;
+}
