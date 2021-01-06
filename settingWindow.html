@@ -135,9 +135,21 @@
                     <div class="switch-wrapper">
                         <label class="switch">
                             <input type="checkbox" id="start-muted-switch" onclick="setStartMuted(this)">
-                            <span class="slider"></span>
+                            <span tabindex="6" class="slider"></span>
                         </label>
                         <span id="start-muted-state">Off</span>
+                    </div>
+                </div>
+                
+                <!-- Start Streams Muted -->
+                <div class="setting-item">
+                    <div class="setting-header">
+                        <h2 class="setting-label"><strong>Mute Shortcut</strong></h2>
+                        <p>Set a hotkey to toggle the mute of the most recently active StreamLuv Window</p>
+                    </div>
+                    <div class="set-shortcut-wrapper">
+                        <label class="shortcut-label "for="toggle-mute">Toggle Mute:</label>
+                        <input onclick="focusShortcutInput()" onblur="blurShortcutInput()" onkeypress="return false" id="toggle-mute-input" name="toggle-mute">
                     </div>
                 </div>
 
@@ -163,10 +175,11 @@
     } = require('electron');
 
     let streamInput = document.querySelector(".url-input");
-    let streams = JSON.parse(localStorage.getItem('streamers')) || {};
+    // let streams = JSON.parse(localStorage.getItem('streamers')) || {};
     let settings = JSON.parse(localStorage.getItem('settings')) || {};
 
 
+    //Login
     ipcRenderer.send('twitch-logout', "get-user");
     loadTwitchActions();
 
@@ -212,11 +225,12 @@
     }
 
 
+    //Close Window
     function closeWindow() {
         ipcRenderer.send("close-setting-window");
     }
 
-    //Key shortcuts
+    //Setting Window shortcuts
     function submitEnter(e) {
         if (e.keyCode == 13) { //Enter Key
             applySettings();
@@ -272,8 +286,14 @@
         startMutedState.innerHTML = 'Off';
     }
 
-    //SECTION Setting controls
+    //Mute Shortcut
+    let setSpan = document.getElementById('toggle-mute-input');
+    let shortcutVal = settings.muteshortcut || ['Ctrl', '\''];
+    let oldShortcut = [];
+    setSpan.value = shortcutVal.join('+');
 
+
+    //SECTION Setting controls
     //Auto Open Behavior
     function changeAutoOpen(type) {
         console.log(type)
@@ -314,6 +334,61 @@
         }
         ipcRenderer.send('set-start-muted', e.checked);
         saveSettings();
+    }
+
+    //Mute Shortcut
+    function focusShortcutInput() {
+        shortcutVal = [];
+        document.addEventListener("keydown", processShortcut);
+        document.addEventListener("keyup", confirmShortcut);
+    }
+
+    function processShortcut(e) {
+        e.preventDefault();
+        console.log(e);
+        let newKey = e.key;
+        //Handle edge cases
+        if(e.code == 'Space') {
+            newKey = e.code;
+        } else if(e.key == 'Control') {
+            newKey = 'Ctrl';
+        } else if(e.key.indexOf('Arrow') > -1) {
+            newKey = e.key.slice(5);
+        }
+
+        if(newKey.length == 1) {
+            newKey = newKey.toUpperCase();
+        }
+        if(!shortcutVal.includes(newKey)) {
+            shortcutVal.push(newKey);
+        }
+        setSpan.value = shortcutVal.join('+');
+    }
+
+    function confirmShortcut() {
+        let shortcutCheck = shortcutVal.filter(key => {
+            if(key != 'Ctrl' && key != 'Shift' && key != 'Alt') {
+                return true;
+            } else {
+                return false
+            }
+        })
+        console.log(shortcutVal)
+        console.log(shortcutCheck)
+        if(shortcutCheck.length == 0) {
+            setSpan.value = oldShortcut.join('+');
+        } else {
+            settings.muteshortcut = shortcutVal;
+            oldShortcut = shortcutVal;
+            saveSettings();
+            ipcRenderer.send('new-mute-shortcut', shortcutVal);
+        }
+        setSpan.blur();
+    }
+
+    function blurShortcutInput() {
+        document.removeEventListener("keydown", processShortcut);
+        document.addEventListener("keyup", confirmShortcut);
     }
 
     function saveSettings() {

@@ -94,6 +94,10 @@
         ipcRenderer.send('history-forward', streamPage);
     }
 
+    ipcRenderer.on('mute-shortcut', () => {
+        toggleMute();
+    })
+
     function toggleMute() {
         if(mute) {
             mute = !mute;
@@ -107,6 +111,13 @@
         ipcRenderer.send('toggle-stream-mute', {window: streamPage, val: mute});
     }
 
+    ipcRenderer.on('get-mute-val', () => {
+        ipcRenderer.send('send-mute-val', {streamName: streamPage, val: mute});
+    })
+
+    ipcRenderer.on('get-focus', () => {
+        ipcRenderer.send('recieved-focus', streamPage);
+    })
 
     function minimizeWindow() {
         ipcRenderer.send('minimize-stream-shell', streamPage);

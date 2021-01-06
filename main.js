@@ -5,7 +5,8 @@ const {
     Tray,
     Menu,
     shell,
-    BrowserView
+    BrowserView,
+    globalShortcut
 } = require('electron');
 const windowStateKeeper = require('electron-window-state');
 
@@ -20,6 +21,8 @@ let mainWindowState;
 let streamWindowState;
 const iconPath = `${__dirname}/buildResources/icon.ico`;
 let tray = null;
+let pauseShortcut;
+let muteStates = {};
 
 app.allowRendererProcessReuse = true;
 app.disableHardwareAcceleration();
@@ -93,8 +96,71 @@ app.on('ready', function () {
             // tray.setContextMenu(contextMenu);
         })
     }
-    
 });
+
+//Mute Shortcut
+ipcMain.on('new-mute-shortcut', (e, data) => {
+    registerMuteShortcut(data);
+})
+let oldMuteShortcut;
+function registerMuteShortcut(shortcut) {
+    let ctrlIndex = shortcut.indexOf('Ctrl');
+    if(ctrlIndex > -1) {
+        shortcut[ctrlIndex] = 'CmdOrCtrl';
+    }
+    
+    shortcut = shortcut.join('+');
+    if(pauseShortcut) {
+        globalShortcut.unregister(oldMuteShortcut);
+    }
+    oldMuteShortcut = shortcut;
+    pauseShortcut = globalShortcut.register(shortcut, () => {
+        checkMuteStates();
+    });
+}
+
+let audibleStreams = [];
+let lastFocus = [];
+function checkMuteStates() {
+    for(let stream in collectionWindows) {
+        collectionWindows[stream].webContents.send('get-mute-val');
+    }
+    for(let stream in muteStates) {
+        if(!muteStates[stream]) {
+            audibleStreams.push(stream);
+        }
+    }
+    // if(audibleStreams.length == 0 && Object.keys(collectionWindows).length > 1 && lastFocus) {
+    //     collectionWindows[stream].webContents.send('toggle-stream-mute');
+    // }
+    if(collectionWindows[lastFocus[0]]) {
+        collectionWindows[lastFocus[0]].webContents.send('mute-shortcut');
+    }
+}
+
+ipcMain.on('send-mute-val', (e, data) => {
+    let {streamName, val } = data;
+    muteStates[streamName] = val;
+})
+
+ipcMain.on('recieved-focus', (e, data) => {
+    addToFocusList(data);
+})
+
+function addToFocusList(payload) {
+    if(lastFocus.includes(payload)) {
+        let startIndex = lastFocus.indexOf(payload);
+        lastFocus.splice(startIndex, 1);
+        lastFocus.unshift(payload);
+    } else {
+        lastFocus.unshift(payload);
+    }
+}
+
+function removeFromFocusList(payload) {
+    let startIndex = lastFocus.indexOf(payload);
+    lastFocus.splice(startIndex, 1);
+}
 
 // Opening on startup
 // https://www.electronjs.org/docs/api/shell#shellwriteshortcutlinkshortcutpath-operation-options-windows
@@ -285,7 +351,7 @@ async function openWindow(stream) {
     let windowMenuTemplate = [
         {
             label: 'Reload',
-            accelerator: 'Ctrl+R',
+            accelerator: 'CmdOrCtrl+R',
             click: () => {
                 view.webContents.reload();
             }
@@ -317,6 +383,10 @@ async function openWindow(stream) {
         console.log('Toodles UwU');
     })
 
+    window.on('focus', (e) => {
+        window.webContents.send('get-focus');
+    })
+
     window.on('close', e => {
         window.webContents.send('proper-close');
     })
@@ -331,12 +401,14 @@ async function openWindow(stream) {
     collectionViews[stream] = view;
     streamWindowState.manage(window);
 
+    addToFocusList(stream);
+
     //Debugging
     // window.webContents.toggleDevTools();
 }
 
 //SECTION
-//Stream Shell window controll
+//Stream Shell window control
 ipcMain.on('history-back', (e, data) => {
     collectionViews[data].webContents.goBack();
 })
@@ -364,6 +436,7 @@ ipcMain.on('close-stream-alt', async(e, data) => {
     if(collectionKeys.indexOf(data) > -1) {
         collectionKeys.splice(collectionKeys.indexOf(data), 1);
     }
+    removeFromFocusList(data);
 });
 
 async function autoCollect() {
@@ -552,6 +625,8 @@ ipcMain.on('set-start-muted', (e, data) => {
 ipcMain.on('load-settings', (e, data) => {
     if(data) {
         startMuted = data.startmuted;
+        let muteShortcut = data.muteshortcut;
+        registerMuteShortcut(muteShortcut);
     }
 })
 

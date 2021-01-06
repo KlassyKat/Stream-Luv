@@ -30,7 +30,8 @@
     transition: 0.2s;
 }
 
-.input-container:hover input ~ .custom-rb {
+.input-container:hover input ~ .custom-rb,
+.input-container:focus input ~ .custom-rb {
     background-color: #ffffff;
 }
 
