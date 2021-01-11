@@ -141,7 +141,7 @@
                     </div>
                 </div>
                 
-                <!-- Start Streams Muted -->
+                <!-- Mute Toggle Shortcut -->
                 <div class="setting-item">
                     <div class="setting-header">
                         <h2 class="setting-label"><strong>Mute Shortcut</strong></h2>
@@ -150,6 +150,21 @@
                     <div class="set-shortcut-wrapper">
                         <label class="shortcut-label "for="toggle-mute">Toggle Mute:</label>
                         <input onclick="focusShortcutInput()" onblur="blurShortcutInput()" onkeypress="return false" id="toggle-mute-input" name="toggle-mute">
+                    </div>
+                </div>
+
+                <!-- Start Streams Muted -->
+                <div class="setting-item">
+                    <div class="setting-header">
+                        <h2 class="setting-label"><strong>Auto Theater</strong></h2>
+                        <p>Streams start in theater view.</p>
+                    </div>
+                    <div class="switch-wrapper">
+                        <label class="switch">
+                            <input type="checkbox" id="auto-theater-switch" onclick="setAutoTheater(this)">
+                            <span tabindex="9" class="slider"></span>
+                        </label>
+                        <span id="auto-theater-state">Off</span>
                     </div>
                 </div>
 
@@ -292,6 +307,16 @@
     let oldShortcut = [];
     setSpan.value = shortcutVal.join('+');
 
+    //Auto Theater
+    let autoTheaterSwitch = document.getElementById('auto-theater-switch');
+    let autoTheaterState = document.getElementById('auto-theater-state');
+    if (settings.autotheater) {
+        autoTheaterSwitch.checked = true;
+        autoTheaterState.innerHTML = 'On';
+    } else {
+        autoTheaterSwitch.checked = false;
+        autoTheaterState.innerHTML = 'Off';
+    }
 
     //SECTION Setting controls
     //Auto Open Behavior
@@ -373,8 +398,6 @@
                 return false
             }
         })
-        console.log(shortcutVal)
-        console.log(shortcutCheck)
         if(shortcutCheck.length == 0) {
             setSpan.value = oldShortcut.join('+');
         } else {
@@ -389,6 +412,19 @@
     function blurShortcutInput() {
         document.removeEventListener("keydown", processShortcut);
         document.addEventListener("keyup", confirmShortcut);
+    }
+
+    //Auto Theater
+    function setAutoTheater(e) {
+        if(e.checked) {
+            settings.autotheater = true;
+            autoTheaterState.innerHTML = 'On';
+        } else {
+            settings.autotheater = false;
+            autoTheaterState.innerHTML = 'Off';
+        }
+        ipcRenderer.send('set-auto-theater', e.checked);
+        saveSettings();
     }
 
     function saveSettings() {

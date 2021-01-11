@@ -121,17 +121,17 @@
 
 [x] Browser window tile link opens both(maybe when auto open streamluv is active)
 
-[] global keyboard mute shortcut
+[x] global keyboard mute shortcut
 
 [] navigate to streamer then add then turn on auto open opens 2 instances
     -fetch all page names to confirm open
 
 [] auto refresh if stream crashes
 
-[] Mute shortcut errors when closing a window and not focusing a new one
+[x] Mute shortcut errors when closing a window and not focusing a new one
 
-[] Handle mute shortcut with no windows
+[x] Handle mute shortcut with no windows
 
-[] Make recnet focus array that adds and removes on window open / close and shift focus
+[x] Make recnet focus array that adds and removes on window open / close and shift focus
 
 [] set all stream open values to false on startup

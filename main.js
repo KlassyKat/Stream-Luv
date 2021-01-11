@@ -100,7 +100,11 @@ app.on('ready', function () {
 
 //Mute Shortcut
 ipcMain.on('new-mute-shortcut', (e, data) => {
-    registerMuteShortcut(data);
+    try {
+        registerMuteShortcut(data);
+    } catch(e) {
+        return;
+    }
 })
 let oldMuteShortcut;
 function registerMuteShortcut(shortcut) {
@@ -108,7 +112,7 @@ function registerMuteShortcut(shortcut) {
     if(ctrlIndex > -1) {
         shortcut[ctrlIndex] = 'CmdOrCtrl';
     }
-    
+
     shortcut = shortcut.join('+');
     if(pauseShortcut) {
         globalShortcut.unregister(oldMuteShortcut);
@@ -160,6 +164,14 @@ function addToFocusList(payload) {
 function removeFromFocusList(payload) {
     let startIndex = lastFocus.indexOf(payload);
     lastFocus.splice(startIndex, 1);
+}
+
+//Auto Theater
+async function autoTheaterFn(payload) {
+    let page = await pie.getPage(browser, collectionViews[payload]);
+    await page.keyboard.down('Alt');
+    await page.keyboard.press('KeyT');
+    await page.keyboard.up('Alt');
 }
 
 // Opening on startup
@@ -271,7 +283,7 @@ ipcMain.on('open-auto-collect', async (e, args) => {
     if(type == 1) {
         openWindow(id);
     } else if(type == 2) {
-        console.log('We said fuck it');
+        console.log('We said f it');
     } else {
         if(collectionKeys.indexOf(id) < 0) {
             collectionKeys.push(id);
@@ -285,8 +297,31 @@ ipcMain.on('open-auto-collect', async (e, args) => {
     }
 })
 
+//Check auto collect in stream window
+ipcMain.on('get-auto-collect-value', (e, data) => {
+    if(collectionKeys.includes(data)) {
+        collectionWindows[data].webContents.send('send-auto-collect-value', true);
+    } else {
+        collectionWindows[data].webContents.send('send-auto-collect-value', false);
+    }
+})
+
+//Allows auto collection toggle from stream window
+ipcMain.on('toggle-auto-collection', async (e, data) => {
+    if(collectionKeys.indexOf(data) > -1) {
+        let startIndex = collectionKeys.indexOf(data);
+        collectionKeys.splice(startIndex, 1);
+    } else {
+        collectionKeys.push(data);
+    }
+    if(!collectionInterval && collectionKeys.length > 0) {
+        collectionInterval = setInterval(autoCollect, 10000);
+    }
+})
+
 //SECTION Stream shell windows
 let startMuted = false;
+let autoTheater = false;
 async function openWindow(stream) {
     if (collectionWindows[stream]) {
         collectionWindows[stream].focus();
@@ -297,7 +332,8 @@ async function openWindow(stream) {
         webPreferences: {
             nodeIntegration: true,
             webSecurity: false,
-            backgroundThrottling: false
+            //Seems to cause title bar bugs
+            // backgroundThrottling: false
         },
         x: streamWindowState.x,
         y: streamWindowState.y,
@@ -403,6 +439,13 @@ async function openWindow(stream) {
 
     addToFocusList(stream);
 
+    view.webContents.on('did-finish-load', () => {
+        if(autoTheater) {
+            autoTheaterFn(stream);
+        }
+    })
+    
+    
     //Debugging
     // window.webContents.toggleDevTools();
 }
@@ -596,7 +639,6 @@ ipcMain.on('twitch-logout', async (e, logout) => {
     }
 });
 //SECTION Setting Handlers
-
 //Open on Startup
 let AutoLaunch = require('auto-launch');
 let appAutoLaunch = new AutoLaunch({
@@ -620,6 +662,15 @@ ipcMain.on('set-start-muted', (e, data) => {
     }
 })
 
+//Auto Theater
+ipcMain.on('set-auto-theater', (e, data) => {
+    if(data) {
+        autoTheater = true;
+    } else {
+        autoTheater = false;
+    }
+})
+
 
 //SECTION Load Settings
 ipcMain.on('load-settings', (e, data) => {
@@ -627,6 +678,7 @@ ipcMain.on('load-settings', (e, data) => {
         startMuted = data.startmuted;
         let muteShortcut = data.muteshortcut;
         registerMuteShortcut(muteShortcut);
+        autoTheater = data.autotheater || false;
     }
 })
 

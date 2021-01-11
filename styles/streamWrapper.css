@@ -2,6 +2,7 @@
 body {
     padding: 0;
     margin: 0;
+    height: 100vh;
 }
 .control-bar {
     height: 32px;
@@ -19,7 +20,14 @@ body {
     margin: 0;
     font-family: 'Montserrat', sans-serif;
     -webkit-user-select: none;
+    -webkit-app-region: no-drag;
     color: white;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+#window-title:hover {
+    text-shadow: 0px 0px 6px #ff8000;
 }
 
 .control-bar>span:hover {
@@ -74,3 +82,4 @@ body {
     stroke: #707070;
     stroke-width: 5;
 }
+

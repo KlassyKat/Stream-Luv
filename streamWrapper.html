@@ -1,8 +1,7 @@
 <link rel="stylesheet" href="./styles/streamWrapper.css">
-
 <body>
     <nav class="control-bar">
-        <strong id="window-title">Placeholder</strong>
+        <strong id="window-title" class="tooltip" onclick="toggleAutoCollection()">Placeholder</strong>
         <span onclick="back()" class="history-back">
             <svg viewBox="0 0 32 32">
                 <path d="M22,28l-12,-12l12,-12" style="fill:none;stroke-width:4.2px;" />
@@ -52,7 +51,6 @@
         </span>
     </nav>
 </body>
-
 <script>
     const {
         ipcRenderer
@@ -62,17 +60,19 @@
     let mute = false;
     let soundIcon = document.getElementById('sound-icon');
     let muteIcon = document.getElementById('mute-icon');
+    let windowTitle = document.getElementById('window-title');
 
 
     //SECTION Startup state
     //Page Title
     ipcRenderer.on('page-title', (e, data) => {
         streamPage = data;
-        document.getElementById('window-title').innerHTML = streamPage;
+        windowTitle.innerHTML = streamPage;
+        getAutoCollectionValue();
     })
 
     ipcRenderer.on('new-page-title', (e, data) => {
-        document.getElementById('window-title').innerHTML = data;
+        windowTitle.innerHTML = data;
     })
 
     document.addEventListener('visibilitychange', (e) => {
@@ -94,6 +94,7 @@
         ipcRenderer.send('history-forward', streamPage);
     }
 
+    // Muting
     ipcRenderer.on('mute-shortcut', () => {
         toggleMute();
     })
@@ -119,6 +120,25 @@
         ipcRenderer.send('recieved-focus', streamPage);
     })
 
+    //Control auto collect
+    function getAutoCollectionValue() {
+        ipcRenderer.send('get-auto-collect-value', streamPage);
+    }
+    ipcRenderer.on('send-auto-collect-value', (e, data) => {
+        if(data) {
+            windowTitle.style.color = 'hsl(192, 60%, 40%)';
+        } else {
+            windowTitle.style.color = '#fff';
+        }
+    })
+
+    function toggleAutoCollection() {
+        ipcRenderer.send('toggle-auto-collection', streamPage);
+        getAutoCollectionValue();
+    }
+    
+
+    //Window handling
     function minimizeWindow() {
         ipcRenderer.send('minimize-stream-shell', streamPage);
     }
@@ -131,4 +151,12 @@
     function closeWindow() {
         ipcRenderer.send('close-stream-shell', streamPage);
     }
+
+    //Message in the top bar
+    //Create overlapping browser window
+    //Windows notification
+    //More Recognizable Icon toggle
+    //Tooltip da way?
+
+
 </script>

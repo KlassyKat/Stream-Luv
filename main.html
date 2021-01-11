@@ -8,7 +8,7 @@
 <body>
     <div id="message-container">
         <div class="message-wrapper">
-            <p id="message">Streamluv is now running auto collect on thetruemechmaster</p>
+            <p id="message">message</p>
             <span class="close-message" onclick="closeMessage()">
                 <svg width="24px" viewBox="0 0 10 10">
                     <rect stroke-width="0" x="4.5" y="2" width="1" height="6" />
@@ -102,7 +102,8 @@
         globalautoopen: false,
         autoopentype: 'browser',
         pause: false,
-        muteshortcut: ['Ctrl+\'']
+        muteshortcut: ['Ctrl','\''],
+        autotheater: false
     };
     localStorage.setItem('settings', JSON.stringify(settings));
     let tileWrapper = document.getElementById('tile-wrapper');
@@ -321,7 +322,7 @@
     }
 
     // pause scope
-    {   
+    {  
         ipcRenderer.on('pause-auto', e => {
             pause();
         })
