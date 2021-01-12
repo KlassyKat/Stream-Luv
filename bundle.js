@@ -161,10 +161,22 @@ function removeFromFocusList(payload) {
 //Auto Theater
 async function autoTheaterFn(payload) {
     let page = await pie.getPage(browser, collectionViews[payload]);
-    await page.keyboard.down('Alt');
-    await page.keyboard.press('KeyT');
-    await page.keyboard.up('Alt');
+    let theaterBtn = await findTheaterBtn();
+    if(theaterBtn) {
+        theaterBtn.click();
+    }
+    function findTheaterBtn() {
+        let btn = null;
+        while(!btn) {
+            btn = page.$(".video-player__overlay div[data-a-target=player-controls] [data-a-target=player-theatre-mode-button]");
+        }
+        return btn;
+    }
+    // await page.keyboard.down('Alt');
+    // await page.keyboard.press('KeyT');
+    // await page.keyboard.up('Alt');
 }
+
 
 // Opening on startup
 // https://www.electronjs.org/docs/api/shell#shellwriteshortcutlinkshortcutpath-operation-options-windows
@@ -256,9 +268,19 @@ let collectionKeys = [];
 let collectionInterval = null;
 let browser;
 const pie = require('puppeteer-in-electron');
-startAutoCollection();
-async function startAutoCollection() {
+launchPuppeteer();
+async function launchPuppeteer() {
     const puppeteer = require('puppeteer-core');
+    //BTTV Base
+    // let pathToExtension = `${app.getPath('home')}/AppData/Local/Google/Chrome/User Data/Default/Extensions/ajopnjidmegmdimjlfnijceegpefgped`
+    // console.log(pathToExtension);
+    // puppeteer.launch({
+    //     headless: false,
+    //     args: [
+    //         `--disable-extensions-except=${pathToExtension}`,
+    //         `--load-extension=${pathToExtension}`
+    //     ]
+    // })
     await pie.initialize(app);
     browser = await pie.connect(app, puppeteer);
 }
@@ -331,13 +353,15 @@ async function openWindow(stream) {
         y: streamWindowState.y,
         width: streamWindowState.width,
         height: streamWindowState.height,
+        minWidth: 500,
+        minHeight: 400,
         show: true,
         frame: false,
         backgroundColor: '#1d1d1d',
         title: stream
     });
     let view = new BrowserView();
-    window.addBrowserView(view);
+    window.setBrowserView(view);
     let viewAnchor = {
         x: 0,
         y: 32
@@ -431,11 +455,11 @@ async function openWindow(stream) {
 
     addToFocusList(stream);
 
-    view.webContents.on('did-finish-load', () => {
+    // view.webContents.once('did-start-loading', () => {
         if(autoTheater) {
             autoTheaterFn(stream);
         }
-    });
+    // })
     
     
     //Debugging

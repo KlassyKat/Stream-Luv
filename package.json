@@ -24,7 +24,7 @@
   "author": "Gabe Alexander",
   "license": "ISC",
   "devDependencies": {
-    "browser-sync": "^2.26.7",
+    "browser-sync": "^2.26.13",
     "electron": "^8.5.2"
   },
   "dependencies": {
