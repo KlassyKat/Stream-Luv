@@ -9,7 +9,7 @@ const {
     globalShortcut
 } = require('electron');
 const windowStateKeeper = require('electron-window-state');
-
+const fs = require('fs');
 
 
 let mainWindow;
@@ -30,7 +30,6 @@ app.disableHardwareAcceleration();
 app.commandLine.appendSwitch("disable-renderer-backgrounding");
 
 app.on('ready', function () {
-
     //Main Window
     mainWindowState = windowStateKeeper({
         maximize: false
@@ -752,3 +751,31 @@ ipcMain.on('close-support-window', () => {
 ipcMain.on('close-info-window', () => {
     infoWindow.close();
 })
+
+//File System
+const filePath = `${app.getPath('userData')}/streamers.json`;
+ipcMain.on('load-streamers', () => {
+    loadStreamers();
+})
+ipcMain.on('save-streamers', (e, file) => {
+    saveStreamers(file);
+}) 
+
+function saveStreamers(file) {
+    file = JSON.stringify(file);
+    fs.writeFile(filePath, file, (err) => {
+        if(err) {
+            console.log(err);
+        }
+        console.log('Streamers Saved.');
+    })
+}
+
+function loadStreamers() {
+    fs.readFile(filePath, 'utf8', (err, data) => {
+        if(err) {
+            console.log(err)
+        }
+        mainWindow.webContents.send('send-streamers', data);
+    })
+}

@@ -81,6 +81,7 @@
 </body>
 <script src="./scripts/message.js"></script>
 <script src="./scripts/secret.js"></script>
+<script src="./scripts/loadStreams.js"></script>
 <script src="./scripts/apiCalls.js"></script>
 <script>
     const {
@@ -94,7 +95,24 @@
     } = remote;
     const Sortable = require('sortablejs');
 
-    let streamers = JSON.parse(localStorage.getItem('streamers'));
+    //Storage
+    let streamers = {};
+    loadStreamerFile();
+    function loadStreamerFile() {
+        ipcRenderer.send('load-streamers');
+    }
+    ipcRenderer.on('send-streamers', (e, data) => {
+        // streamers = data || {};
+        // console.log(data);
+        
+        loadStreams.initilize(JSON.parse(data));
+    })
+
+    function saveStreamerFile(data) {
+        ipcRenderer.send('save-streamers', data);
+    }
+
+    // let streamers = JSON.parse(localStorage.getItem('streamers')) || {};
     let settings = JSON.parse(localStorage.getItem('settings')) || 
     {
         startmuted: false,
@@ -106,6 +124,8 @@
         autotheater: false
     };
     localStorage.setItem('settings', JSON.stringify(settings));
+
+    //Set HTML Element values
     let tileWrapper = document.getElementById('tile-wrapper');
     let streamTile = document.getElementById('place-holder');
     let streamElements = createTileArray('element');
@@ -121,15 +141,16 @@
         }
     }
 
-    loadStreamers().then(() => {
-        // let dragList = createTileArray('element');
-        let dragList = document.getElementById('tile-wrapper');
-        let sortable = Sortable.create(dragList);
-    })
+    // loadStreamers().then(() => {
+    //     // let dragList = createTileArray('element');
+    //     let dragList = document.getElementById('tile-wrapper');
+    //     let sortable = Sortable.create(dragList);
+    // })
 
     async function loadStreamers() {
         for(streamer in streamers) {
             streamer = streamers[streamer];
+            //file: apiCalls.js getStreamer makes api request with login name 
             let response = await apiCalls.getStreamer(streamer.name);
             if(response == undefined) {
                 delete streamers[streamer];
@@ -245,7 +266,7 @@
                     console.log(streamers[element.id].wentoffline);
                     streamers[element.id].live = false;
                 } else if((Date.now() - 600000) > streamers[element.id].wentoffline && !streamers[element.id].live) {
-                    console.log('Set stream open false')
+                    console.log('Set stream open false');
                     streamers[element.id].streamopen = false;
                 }
             }

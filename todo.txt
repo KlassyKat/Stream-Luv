@@ -135,3 +135,5 @@
 [x] Make recnet focus array that adds and removes on window open / close and shift focus
 
 [] set all stream open values to false on startup
+
+loadStreamers() > getStreamer() > checkTiles() > 
