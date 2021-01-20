@@ -11,6 +11,8 @@ const {
 const windowStateKeeper = require('electron-window-state');
 const fs = require('fs');
 
+const contextMenu = require('electron-context-menu');
+
 
 let mainWindow;
 let addStreamWindow;
@@ -43,7 +45,8 @@ app.on('ready', () => {
     mainWindow = new BrowserWindow({
         webPreferences: {
             nodeIntegration: true,
-            webSecurity: false
+            contextIsolation: false,
+            enableRemoteModule: true,
         },
         x: mainWindowState.x,
         y: mainWindowState.y,
@@ -193,7 +196,8 @@ async function autoTheaterFn(payload) {
 ipcMain.on('open-stream-window', () => {
     addStreamWindow = new BrowserWindow({
         webPreferences: {
-            nodeIntegration: true
+            nodeIntegration: true,
+            contextIsolation: false
         },
         modal: true,
         x: mainWindowState.x - 25,
@@ -225,7 +229,8 @@ ipcMain.on('open-stream-window', () => {
 ipcMain.on('open-setting-window', () => {
     settingWindow = new BrowserWindow({
         webPreferences: {
-            nodeIntegration: true
+            nodeIntegration: true,
+            contextIsolation: false
         },
         modal: true,
         x: mainWindowState.x - 25,
@@ -349,6 +354,9 @@ ipcMain.on('toggle-auto-collection', async (e, data) => {
     }
 })
 
+//Stream Shell context menu
+
+
 //SECTION Stream shell windows
 // let startMuted = false;
 let autoTheater = false;
@@ -361,9 +369,9 @@ async function openWindow(stream) {
     let window = new BrowserWindow({
         webPreferences: {
             nodeIntegration: true,
-            webSecurity: false,
-            //Seems to cause title bar bugs
-            // backgroundThrottling: false
+            contextIsolation: false,
+            enableRemoteModule: true,
+            spellcheck: true
         },
         x: streamWindowState.x,
         y: streamWindowState.y,
@@ -376,6 +384,14 @@ async function openWindow(stream) {
         backgroundColor: '#1d1d1d',
         title: stream
     });
+    //Context Menu
+    contextMenu({
+        prepend: (defaultActions, params, window) => [
+            {
+                label: '?'
+            }
+        ]
+    })
     let view = new BrowserView();
     window.setBrowserView(view);
     let viewAnchor = {
@@ -393,7 +409,7 @@ async function openWindow(stream) {
 
     view.webContents.on('new-window', (e, url) => {
         e.preventDefault();
-        shell.openItem(url);
+        shell.openPath(url);
     });
 
     //www.twitch.tv/klassykat?refferal=raid
@@ -511,8 +527,8 @@ ipcMain.on('close-stream-shell', async(e, data) => {
 });
 ipcMain.on('close-stream-alt', async(e, data) => {
     console.log('Close: ' + data);
-    // await collectionWindows[data].close();
-    await collectionViews[data].destroy();
+    await collectionWindows[data].destroy();
+    // await collectionViews[data].destroy();
     delete collectionWindows[data];
     delete collectionViews[data];
     if(collectionKeys.indexOf(data) > -1) {
@@ -548,7 +564,8 @@ let loginWindow, loginView
 ipcMain.on('twitch-login', async () => {
     loginWindow = new BrowserWindow({
         webPreferences: {
-            nodeIntegration: true
+            nodeIntegration: true,
+            contextIsolation: false,
         },
         show: true,
         frame: false,
@@ -576,7 +593,7 @@ ipcMain.on('twitch-login', async () => {
         try {
             await loginWindow.close();
             loginWindow = null;
-            await loginView.destroy();
+            // await loginView.destroy();
             loginView = null;
             settingWindow.webContents.send('logged-in');
         } catch (error) {
@@ -592,7 +609,7 @@ ipcMain.on('twitch-login', async () => {
         try {
             await loginWindow.close();
             loginWindow = null;
-            await loginView.destroy();
+            // await loginView.destroy();
             loginView = null;
         } catch (error) {
             return;
@@ -670,7 +687,7 @@ ipcMain.on('twitch-logout', async (e, logout) => {
         try {
             await logoutWindow.close();
             logoutWindow = null;
-            await logoutView.destroy();
+            // await logoutView.destroy();
             logoutView = null;
         } catch (error) {
             return;
@@ -724,7 +741,8 @@ ipcMain.on('set-auto-theater', (e, data) => {
 ipcMain.on('open-support-window', () => {
     supportWindow = new BrowserWindow({
         webPreferences: {
-            nodeIntegration: true
+            nodeIntegration: true,
+            contextIsolation: false,
         },
         x: mainWindowState.x,
         y: mainWindowState.y,
@@ -743,7 +761,8 @@ ipcMain.on('open-support-window', () => {
 ipcMain.on('open-info-window', () => {
     infoWindow = new BrowserWindow({
         webPreferences: {
-            nodeIntegration: true
+            nodeIntegration: true,
+            contextIsolation: false,
         },
         x: mainWindowState.x,
         y: mainWindowState.y,

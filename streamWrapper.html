@@ -53,14 +53,8 @@
 </body>
 <script>
     const {
-        ipcRenderer,
-        remote,
-        clipboard
+        ipcRenderer
     } = require('electron');
-    const {
-        Menu,
-        MenuItem
-    } = remote;
 
     let streamPage;
     // let settings = JSON.parse(localStorage.getItem('settings'));
@@ -154,42 +148,42 @@
     }
 
     //Context Menu
-    {
-        let rightClickMenu = new Menu();
-        let rightClickMenuItems = [];
-        rightClickMenuItems.push(new MenuItem({
-            label: 'Reload',
-            click: () => {
-                console.log('UwU');
-            }
-        }));
-        rightClickMenuItems.push(new MenuItem({
-            label: 'Copy',
-            click: () => {
-                clipboard.writeText(selectedText);
-                // clipboard.writeText(url);
-            }
-        }));
-        rightClickMenuItems.push(new MenuItem({
-            label: "Paste",
-            click: () => {
+    // {
+    //     let rightClickMenu = new Menu();
+    //     let rightClickMenuItems = [];
+    //     rightClickMenuItems.push(new MenuItem({
+    //         label: 'Reload',
+    //         click: () => {
+    //             console.log('UwU');
+    //         }
+    //     }));
+    //     rightClickMenuItems.push(new MenuItem({
+    //         label: 'Copy',
+    //         click: () => {
+    //             clipboard.writeText(selectedText);
+    //             // clipboard.writeText(url);
+    //         }
+    //     }));
+    //     rightClickMenuItems.push(new MenuItem({
+    //         label: "Paste",
+    //         click: () => {
 
-            }
-        }));
-        for(item of rightClickMenuItems) {
-            rightClickMenu.append(item);
-        }
+    //         }
+    //     }));
+    //     for(item of rightClickMenuItems) {
+    //         rightClickMenu.append(item);
+    //     }
 
-        ipcRenderer.on('right-click', (e, data) => {
-            selectedText = data.text;
-            url = data.link;
-            rightClickMenu.popup({
-                window: remote.getCurrentWindow()
-            });
-        })
-        let selectedText;
-        let url;
-    }
+    //     ipcRenderer.on('right-click', (e, data) => {
+    //         selectedText = data.text;
+    //         url = data.link;
+    //         rightClickMenu.popup({
+    //             window: remote.getCurrentWindow()
+    //         });
+    //     })
+    //     let selectedText;
+    //     let url;
+    // }
     
 
     //Window handling
