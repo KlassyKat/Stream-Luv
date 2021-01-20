@@ -8,12 +8,14 @@ const {
     Menu,
     shell,
     BrowserView,
-    globalShortcut
+    globalShortcut,
+    WebContents
 } = require('electron');
 const windowStateKeeper = require('electron-window-state');
 const fs = require('fs');
 
 const contextMenu = require('electron-context-menu');
+
 
 
 let mainWindow;
@@ -376,16 +378,17 @@ async function openWindow(stream) {
         backgroundColor: '#1d1d1d',
         title: stream
     });
-    //Context Menu
-    contextMenu({
-        prepend: (defaultActions, params, window) => [
-            {
-                label: '?'
-            }
-        ]
-    });
+
+    
+    
     let view = new BrowserView();
     window.setBrowserView(view);
+    // Context Menu
+    contextMenu({
+        window: view,
+        // showCopyImage: true,
+        showInspectElement: false
+    });
     let viewAnchor = {
         x: 0,
         y: 32
@@ -421,9 +424,12 @@ async function openWindow(stream) {
 
         if(url.includes('www.twitch.tv')) {
             streamName = decodeURIComponent(streamName);
-            console.log(streamName);
-            window.setTitle(streamName);
-            window.webContents.send('new-page-title', streamName);
+            try{
+                window.setTitle(streamName);
+                window.webContents.send('new-page-title', streamName);
+            } catch(err) {
+                return;
+            }
         }
     });
 
@@ -805,7 +811,8 @@ function loadStreamers() {
         if(!data) {
             data = {};
         }
-        BrowserWindow.getFocusedWindow().webContents.send('send-streamers', data);
+        let focusedWindow = BrowserWindow.getFocusedWindow() || mainWindow;
+        focusedWindow.webContents.send('send-streamers', data);
     });
 }
 
