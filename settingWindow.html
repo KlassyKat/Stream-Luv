@@ -46,12 +46,17 @@
             </div>
             <span></span>
             <button onclick="openInfoWindow()" id="app-info">
-                <svg width="100%" height="100%" viewBox="0 0 299 299"
+                <!-- <svg width="100%" height="100%" viewBox="0 0 299 299"
                     style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
                     <path
                         d="M149.362,0c82.435,0 149.362,66.927 149.362,149.362c0,82.435 -66.927,149.362 -149.362,149.362c-82.435,0 -149.362,-66.927 -149.362,-149.362c0,-82.435 66.927,-149.362 149.362,-149.362Zm0,23.898c69.246,0 125.465,56.219 125.465,125.464c0,69.246 -56.219,125.465 -125.465,125.465c-69.245,0 -125.464,-56.219 -125.464,-125.465c0,-69.245 56.219,-125.464 125.464,-125.464Z"
                         style="fill:#fff;" /><text x="75.974px" y="253.006px"
                         style="font-family:'Barlow-Bold', 'Barlow';font-weight:700;font-size:289.955px;fill:#fff;">?</text>
+                </svg> -->
+                <svg width="100%" height="100%" viewBox="0 0 32 32" >
+                    <path
+                        d="M6.221,9.33c-0,-1.259 0.404,-2.534 1.212,-3.826c0.808,-1.292 1.988,-2.362 3.538,-3.21c1.55,-0.848 3.359,-1.272 5.426,-1.272c1.921,0 3.617,0.355 5.088,1.064c1.47,0.708 2.607,1.672 3.408,2.891c0.802,1.219 1.203,2.544 1.203,3.975c-0,1.126 -0.229,2.114 -0.686,2.962c-0.457,0.848 -1,1.58 -1.63,2.196c-0.629,0.616 -1.759,1.653 -3.388,3.11c-0.451,0.411 -0.812,0.772 -1.084,1.083c-0.271,0.312 -0.473,0.597 -0.606,0.855c-0.132,0.258 -0.235,0.517 -0.308,0.775c-0.073,0.258 -0.182,0.712 -0.328,1.361c-0.252,1.378 -1.04,2.067 -2.365,2.067c-0.689,0 -1.269,-0.225 -1.739,-0.675c-0.47,-0.451 -0.705,-1.12 -0.705,-2.008c-0,-1.113 0.172,-2.077 0.516,-2.891c0.345,-0.815 0.802,-1.531 1.372,-2.147c0.569,-0.616 1.338,-1.348 2.305,-2.196c0.848,-0.742 1.461,-1.302 1.838,-1.679c0.378,-0.378 0.696,-0.799 0.954,-1.263c0.259,-0.463 0.388,-0.967 0.388,-1.51c0,-1.06 -0.394,-1.954 -1.183,-2.683c-0.788,-0.729 -1.805,-1.093 -3.05,-1.093c-1.458,-0 -2.531,0.367 -3.22,1.103c-0.689,0.735 -1.272,1.818 -1.749,3.249c-0.45,1.498 -1.305,2.246 -2.564,2.246c-0.742,0 -1.368,-0.261 -1.878,-0.785c-0.51,-0.523 -0.765,-1.09 -0.765,-1.699Zm9.699,21.783c-0.809,-0 -1.514,-0.262 -2.117,-0.786c-0.603,-0.523 -0.904,-1.255 -0.904,-2.196c-0,-0.834 0.291,-1.537 0.874,-2.106c0.583,-0.57 1.299,-0.855 2.147,-0.855c0.834,-0 1.537,0.285 2.106,0.855c0.57,0.569 0.855,1.272 0.855,2.106c0,0.928 -0.298,1.657 -0.894,2.187c-0.597,0.53 -1.286,0.795 -2.067,0.795Z"
+                        style="fill:white" />
                 </svg>
             </button>
             <span></span>
@@ -153,7 +158,7 @@
                     </div>
                 </div>
 
-                <!-- Start Streams Muted -->
+                <!-- Auto Theater -->
                 <div class="setting-item">
                     <div class="setting-header">
                         <h2 class="setting-label"><strong>Auto Theater</strong></h2>
@@ -190,8 +195,13 @@
     } = require('electron');
 
     let streamInput = document.querySelector(".url-input");
-    // let streams = JSON.parse(localStorage.getItem('streamers')) || {};
-    let settings = JSON.parse(localStorage.getItem('settings')) || {};
+    let settings = {};
+    ipcRenderer.send('get-settings');
+    ipcRenderer.on('send-settings', (e, data) => {
+        settings = JSON.parse(data);
+        console.log(settings.startmuted);
+        setStates();
+    })
 
 
     //Login
@@ -255,68 +265,78 @@
     }
 
     //SECTION Set setting states
-    //Auto Open Behavior
     let autoBrowser = document.getElementById('auto-browser-open');
     let autoStreamLuv = document.getElementById('auto-stream-luv-open');
     let autoCollection = document.getElementById('auto-collection-open');
-    if(settings.autoopentype == 'browser') {
-        autoBrowser.checked = true;
-    } else if(settings.autoopentype == 'stream-luv') {
-        autoStreamLuv.checked = true;
-    } else if(settings.autoopentype == 'auto-collect') {
-        autoCollection.checked = true;
-    } else {
-        autoBrowser.checked = true;
-    }
-    //Link Type
+
     let browserOpen = document.getElementById('browser-open');
     let streamLuvOpen = document.getElementById('stream-luv-open');
-    if (settings.linkType == 'browser') {
-        browserOpen.checked = true;
-    } else if (settings.linkType == 'stream-luv') {
-        streamLuvOpen.checked = true;
-    } else {
-        browserOpen.checked = true;
-    }
 
-    //Open on startup
     let autoOpenSwitch = document.getElementById('auto-open-switch');
     let autoOpenState = document.getElementById('auto-open-state');
-    if (settings.autoopen) {
-        autoOpenSwitch.checked = true;
-        autoOpenState.innerHTML = 'On';
-    } else {
-        autoOpenSwitch.checked = false;
-        autoOpenState.innerHTML = 'Off';
-    }
 
-    //Start Muted
     let startMutedSwitch = document.getElementById('start-muted-switch');
     let startMutedState = document.getElementById('start-muted-state');
-    if (settings.startmuted) {
-        startMutedSwitch.checked = true;
-        startMutedState.innerHTML = 'On';
-    } else {
-        startMutedSwitch.checked = false;
-        startMutedState.innerHTML = 'Off';
-    }
 
-    //Mute Shortcut
     let setSpan = document.getElementById('toggle-mute-input');
     let shortcutVal = settings.muteshortcut || ['Ctrl', '\''];
     let oldShortcut = [];
-    setSpan.value = shortcutVal.join('+');
 
-    //Auto Theater
     let autoTheaterSwitch = document.getElementById('auto-theater-switch');
     let autoTheaterState = document.getElementById('auto-theater-state');
-    if (settings.autotheater) {
-        autoTheaterSwitch.checked = true;
-        autoTheaterState.innerHTML = 'On';
-    } else {
-        autoTheaterSwitch.checked = false;
-        autoTheaterState.innerHTML = 'Off';
+
+
+    function setStates() {
+        //Auto Open Behavior
+        if(settings.autoopentype == 'browser') {
+            autoBrowser.checked = true;
+        } else if(settings.autoopentype == 'stream-luv') {
+            autoStreamLuv.checked = true;
+        } else if(settings.autoopentype == 'auto-collect') {
+            autoCollection.checked = true;
+        } else {
+            autoBrowser.checked = true;
+        }
+        //Link Type
+        if (settings.linkType == 'browser') {
+            browserOpen.checked = true;
+        } else if (settings.linkType == 'stream-luv') {
+            streamLuvOpen.checked = true;
+        } else {
+            browserOpen.checked = true;
+        }
+
+        //Open on startup
+        if (settings.autoopen) {
+            autoOpenSwitch.checked = true;
+            autoOpenState.innerHTML = 'On';
+        } else {
+            autoOpenSwitch.checked = false;
+            autoOpenState.innerHTML = 'Off';
+        }
+
+        //Start Muted
+        if (settings.startmuted) {
+            startMutedSwitch.checked = true;
+            startMutedState.innerHTML = 'On';
+        } else {
+            startMutedSwitch.checked = false;
+            startMutedState.innerHTML = 'Off';
+        }
+
+        //Mute Shortcut
+        setSpan.value = shortcutVal.join('+');
+
+        //Auto Theater
+        if (settings.autotheater) {
+            autoTheaterSwitch.checked = true;
+            autoTheaterState.innerHTML = 'On';
+        } else {
+            autoTheaterSwitch.checked = false;
+            autoTheaterState.innerHTML = 'Off';
+        }
     }
+    
 
     //SECTION Setting controls
     //Auto Open Behavior
@@ -428,7 +448,7 @@
     }
 
     function saveSettings() {
-        localStorage.setItem('settings', JSON.stringify(settings));
+        ipcRenderer.send('save-settings', settings);
     }
 
 

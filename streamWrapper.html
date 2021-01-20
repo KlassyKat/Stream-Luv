@@ -53,10 +53,22 @@
 </body>
 <script>
     const {
-        ipcRenderer
+        ipcRenderer,
+        remote,
+        clipboard
     } = require('electron');
+    const {
+        Menu,
+        MenuItem
+    } = remote;
+
     let streamPage;
-    let settings = JSON.parse(localStorage.getItem('settings'));
+    // let settings = JSON.parse(localStorage.getItem('settings'));
+    let settings = {};
+    ipcRenderer.on('send-view-settings', (e, data) => {
+        settings = JSON.parse(data);
+        setStates();
+    })
     let mute = false;
     let soundIcon = document.getElementById('sound-icon');
     let muteIcon = document.getElementById('mute-icon');
@@ -67,6 +79,7 @@
     //Page Title
     ipcRenderer.on('page-title', (e, data) => {
         streamPage = data;
+        ipcRenderer.send('get-view-settings', streamPage);
         windowTitle.innerHTML = streamPage;
         getAutoCollectionValue();
     })
@@ -80,11 +93,14 @@
     })
 
     //Start Muted
-    if(settings.startmuted) {
-        mute = true;
-        soundIcon.style.display = 'none';
-        muteIcon.style.display = 'block';
+    function setStates() {
+        if(settings.startmuted) {
+            mute = true;
+            soundIcon.style.display = 'none';
+            muteIcon.style.display = 'block';
+        }
     }
+    
 
     function back() {
         ipcRenderer.send('history-back', streamPage);
@@ -135,6 +151,44 @@
     function toggleAutoCollection() {
         ipcRenderer.send('toggle-auto-collection', streamPage);
         getAutoCollectionValue();
+    }
+
+    //Context Menu
+    {
+        let rightClickMenu = new Menu();
+        let rightClickMenuItems = [];
+        rightClickMenuItems.push(new MenuItem({
+            label: 'Reload',
+            click: () => {
+                console.log('UwU');
+            }
+        }));
+        rightClickMenuItems.push(new MenuItem({
+            label: 'Copy',
+            click: () => {
+                clipboard.writeText(selectedText);
+                // clipboard.writeText(url);
+            }
+        }));
+        rightClickMenuItems.push(new MenuItem({
+            label: "Paste",
+            click: () => {
+
+            }
+        }));
+        for(item of rightClickMenuItems) {
+            rightClickMenu.append(item);
+        }
+
+        ipcRenderer.on('right-click', (e, data) => {
+            selectedText = data.text;
+            url = data.link;
+            rightClickMenu.popup({
+                window: remote.getCurrentWindow()
+            });
+        })
+        let selectedText;
+        let url;
     }
     
 

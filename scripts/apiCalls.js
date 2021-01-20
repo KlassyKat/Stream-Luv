@@ -13,6 +13,22 @@ let apiCalls = {
         }
     },
 
+    isStreamer: async (id) => {
+        if (Object.keys(apiCalls.config).length <= 0) {
+            apiCalls.config = await apiCalls.initAxiosSettings();
+        }
+        let isStream = await axios.get('https://api.twitch.tv/helix/users?login=' + id, apiCalls.config);
+        return isStream.data.data[0];
+    },
+
+    isStreamLive: async (id) => {
+        if (Object.keys(apiCalls.config).length <= 0) {
+            apiCalls.config = await apiCalls.initAxiosSettings();
+        }
+        let live = await axios.get('https://api.twitch.tv/helix/streams?user_login=' + id, apiCalls.config);
+        return live = live.data.data[0] ? true : false;
+    },
+
     getStreamer: async (id) => {
         //If config is empty set config
         if (Object.keys(apiCalls.config).length <= 0) {
@@ -37,15 +53,13 @@ let apiCalls = {
     },
 
     startDataCalls: () => {
-        console.log(apiCalls.dataRequestArray)
         Promise.all(apiCalls.dataRequestArray)
             .then((res) => {
-                console.log(res);
                 for(info of res) {
-                    console.log(info);
                     loadStreams.updateTile(info.data.data[0]);
                 }
             })
+            apiCalls.dataRequestArray = [];
     },
 
     startLiveCalls: () => {
@@ -58,5 +72,6 @@ let apiCalls = {
                     loadStreams.updateLiveState(name, val);
                 }
             })
+        apiCalls.liveRequestArray = []
     }
 }

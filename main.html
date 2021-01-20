@@ -61,7 +61,7 @@
                     <div class="auto-collect-toggle-wrapper" onclick="toggleAutoCollection(this.parentElement.parentElement.id)">
                         <span class="toggle-auto-collect" id="collect-state">Toggle auto collect <br> On</span>
                     </div>
-                    <img src="#" alt="stream icon" class="thumbnail">
+                    <img src="./placeholder.png" alt="stream icon" class="thumbnail">
                 </div>
                 <div class="stream-name">
                     <span onclick="streamLink(this.parentElement.parentElement.id)" class="stream-name-text">
@@ -93,104 +93,68 @@
         Menu,
         MenuItem
     } = remote;
+    const fs = require('fs');
     const Sortable = require('sortablejs');
 
+    ipcRenderer.send('load-main-settings');
+
     //Storage
-    let streamers = {};
+    let streamers;
     loadStreamerFile();
     function loadStreamerFile() {
-        ipcRenderer.send('load-streamers');
+        ipcRenderer.send('get-streamers');
     }
     ipcRenderer.on('send-streamers', (e, data) => {
-        // streamers = data || {};
-        // console.log(data);
-        
-        loadStreams.initilize(JSON.parse(data));
+        console.log('Main Window streamers')
+        streamers = JSON.parse(data);
+        loadStreams.initilize(streamers);
     })
 
-    function saveStreamerFile(data) {
-        ipcRenderer.send('save-streamers', data);
+    function saveStreamerFile(streams) {
+        ipcRenderer.send('save-streamers', streams);
     }
 
-    // let streamers = JSON.parse(localStorage.getItem('streamers')) || {};
-    let settings = JSON.parse(localStorage.getItem('settings')) || 
-    {
-        startmuted: false,
-        linkType: 'browser',
-        globalautoopen: false,
-        autoopentype: 'browser',
-        pause: false,
-        muteshortcut: ['Ctrl','\''],
-        autotheater: false
-    };
-    localStorage.setItem('settings', JSON.stringify(settings));
+    let settings = {};
+    loadSettingFile();
+    function loadSettingFile() {
+        let newSettings = {};
+        ipcRenderer.send('get-settings');
+    }
+    ipcRenderer.on('send-settings', (e, data) => {
+        settings = JSON.parse(data);
+    })
+    function saveSettingsFile(data) {
+        ipcRenderer.send('save-settings', data);
+    }
+
+    //Adding Streams
+    ipcRenderer.on('new-stream', () => {
+        loadStreamerFile();
+    })
 
     //Set HTML Element values
     let tileWrapper = document.getElementById('tile-wrapper');
     let streamTile = document.getElementById('place-holder');
-    let streamElements = createTileArray('element');
 
     let liveWatchOn = true;
     let streamWatcher;
-    let pingRate = 90 //in seconds
+    let pingRate = 30 //in seconds
+
     //TODO make ping rate based on number of streams
-
+    watchStreams();
     function watchStreams() {
-        if (liveWatchOn) {
-            streamWatcher = setTimeout(liveCheck, pingRate * 1000);
+        if (liveWatchOn && !streamWatcher) {
+            streamWatcher = setInterval(liveCheck, pingRate * 1000);
         }
     }
-
-    // loadStreamers().then(() => {
-    //     // let dragList = createTileArray('element');
-    //     let dragList = document.getElementById('tile-wrapper');
-    //     let sortable = Sortable.create(dragList);
-    // })
-
-    async function loadStreamers() {
-        for(streamer in streamers) {
-            streamer = streamers[streamer];
-            //file: apiCalls.js getStreamer makes api request with login name 
-            let response = await apiCalls.getStreamer(streamer.name);
-            if(response == undefined) {
-                delete streamers[streamer];
-            }
-            checkTiles(response);
-        }
-    }
-
-    function checkTiles(payload) {
-        let tileList = createTileArray('id');
-        if (!tileList.includes(payload.login)) {
-            createTile(payload);
-        }
-    }
-
-    function createTile(payload) {
-        let newTile = streamTile.cloneNode(true);
-        newTile.id = payload.login;
-        if(streamers[payload.login].autocollect) {
-            newTile.querySelector('#collect-state').innerHTML = 'Toggle auto collect <br> Off';
-            newTile.classList.add('auto-collect_on');
-        }
-        newTile.querySelector('img').src = payload.profile_image_url;
-        newTile.children[0].children[0].children[0].checked = streamers[payload.login].autoopen;
-        let streamName = document.createTextNode(payload.display_name);
-        newTile.children[2].children[0].appendChild(streamName);
-        streamTile.parentElement.lastChild.after(newTile);
-        streamElements = createTileArray('element');
-        addRightClickMenu(streamElements[streamElements.length-1]);
-        liveCheck();
-    }
-
 
     // Window Handeling
     function addStream() {
-        ipcRenderer.send("open-stream-window")
+        ipcRenderer.send("open-stream-window");
     }
 
     function streamLink(stream) {
-        getSettings();
+        loadSettingFile();
         console.log(settings);
         try {
             if(settings.linkType == 'stream-luv' && streamers[stream].autocollect) {
@@ -205,79 +169,43 @@
             }
             console.log('Set stream open: true');
             streamers[stream].streamopen = true;
-            streamers[stream].wentoffline = Date.now();
         } catch(err) {
             shell.openExternal("https://www.twitch.tv/" + stream);
             console.log('Set stream open: true');
             streamers[stream].streamopen = true;
-            streamers[stream].wentoffline = Date.now();
         }
-        saveStreamers();
+        saveStreamerFile(streamers);
     }
 
     async function toggleAutoOpen(streamId, value) {
         streamers[streamId].autoopen = value;
         addMessage(`${streamId} auto open ${value ? 'on' : 'off'}`);
-        saveStreamers();
-        let live = await apiCalls.checkStreamLive(streamId);
+        saveStreamerFile(streamers);
+        let live = await apiCalls.isStreamLive(streamId);
+        console.log(live);
         if(live && streamers[streamId].autoopen && !streamers[streamId].streamopen && !settings.pause) {
             openStream(streamId);
         }
     }
 
     async function liveCheck() {
-        let liveStreams = [];
-        for (let streamer in streamers) {
-            streamer = streamers[streamer];
-            try {
-                let response = await apiCalls.checkStreamLive(streamer.name);
-                if(response) {
-                    liveStreams.push(streamer.name);
-                } 
-            } catch (err) {
-                console.log(err);
-            }
+        console.log('Check Live Loop');
+        for(stream in streamers) {
+            await loadStreams.getLiveState(stream);
         }
-        setLiveState(liveStreams);
+        apiCalls.startLiveCalls();
     }
 
-    function setLiveState(liveStreams) {
-        streamElements = createTileArray('element');
-        getSettings();
-        let checkedStreams = streamElements.filter(element => liveStreams.includes(element.id));
-        for (element of streamElements) {
-            if (checkedStreams.includes(element) && streamers[element.id].autoopen && !streamers[element.id]
-                .streamopen && !settings.pause) { //Live and auto open on
-                console.log('Auto open stream')
-                openStream(element.id);
-                changeElementLive(true, element);
-                streamers[element.id].live = true;
-            } else if (checkedStreams.includes(element)) { //Live
-                changeElementLive(true, element);
-                try {
-                    streamers[element.id].live = true;
-                } catch (err) {
-                    console.log(err);
-                }
-            } else { //Offline
-                changeElementLive(false, element);
-                if(streamers[element.id].live) {
-                    streamers[element.id].wentoffline = Date.now();
-                    console.log(streamers[element.id].wentoffline);
-                    streamers[element.id].live = false;
-                } else if((Date.now() - 600000) > streamers[element.id].wentoffline && !streamers[element.id].live) {
-                    console.log('Set stream open false');
-                    streamers[element.id].streamopen = false;
-                }
-            }
+    function setOffline(name) {
+        console.log('Trying to set stream open ' + name + ' false')
+        if(!streamers[name].live) {
+            console.log('Set stream open to false.')
+            streamers[name].streamopen = false;
         }
-        saveStreamers();
-        clearTimeout(streamWatcher);
-        watchStreams();
     }
 
     function openStream(stream) {
-        getSettings();
+        loadSettingFile();
         try {
             if(settings.autoopentype == 'stream-luv' && streamers[stream].autocollect) { //StreamLuv Autocollect
                 openAutoCollect(stream, 3);
@@ -291,31 +219,13 @@
             }
             console.log('Set stream open: true');
             streamers[stream].streamopen = true;
-            streamers[stream].wentoffline = Date.now();
         } catch(err) {
             console.log(err);
             shell.openExternal("https://www.twitch.tv/" + stream);
             console.log('Set stream open: true');
             streamers[stream].streamopen = true;
-            streamers[stream].wentoffline = Date.now();
         }
-        saveStreamers();
-    }
-
-    function changeElementLive(live, element) {
-        let indicator = element.children[3].children[0];
-        let word = element.children[3].children[1];
-        if(live) {
-            indicator.classList.add('live-indicator_on');
-            word.classList.remove('live-state_off');
-            word.classList.add('live-state_on');
-            word.classList.add('live_on');
-        } else {
-            indicator.classList.remove('live-indicator_on');
-            word.classList.add('live-state_off');
-            word.classList.remove('live-state_on');
-            word.classList.remove('live_on');
-        }
+        saveStreamerFile(streamers);
     }
 
     // Function to open Channel Point Collection 
@@ -325,21 +235,6 @@
     function openAutoCollect(id, type) {
         console.log(type);
         ipcRenderer.send("open-auto-collect", {id, type});
-    }
-
-    function createTileArray(type) {
-        let tileList = [];
-        for (let item of tileWrapper.children) {
-            if(item.id == 'place-holder') {
-                continue;
-            }
-            if (type == 'id') {
-                tileList.push(item.id);
-            } else if (type == 'element') {
-                tileList.push(item)
-            }
-        }
-        return tileList;
     }
 
     // pause scope
@@ -356,10 +251,10 @@
         }
         ipcRenderer.send('change-tray', settings.pause);
         function pause() {
-            getSettings();
+            loadSettingFile();
             settings.pause = !settings.pause;
             ipcRenderer.send('change-tray', settings.pause);
-            saveSettings();
+            saveSettingsFile(settings);
             if(settings.pause) {
                 pauseBtn.style.display = 'none';
                 playBtn.style.display = 'block';
@@ -382,16 +277,9 @@
     }
 
     function closeWindow() {
-        // localStorage.setItem('streamers', streamers);
         //Set all stream open attributes to false
         ipcRenderer.send("close-main-window");
     }
-
-    ipcRenderer.on('load-streams', function () {
-        getStreamers();
-        loadStreamers();
-    })
-
 
     //Right Click Menu
     let elementClick;
@@ -402,10 +290,10 @@
         click() {
             let linkTemp = settings.linkType;
             settings.linkType = 'browser';
-            saveSettings();
+            saveSettingsFile(settings);
             streamLink(elementClick.id);
             settings.linkType = linkTemp;
-            saveSettings();
+            saveSettingsFile(settings);
         }
     }))
 
@@ -414,10 +302,10 @@
         click() {
             let linkTemp = settings.linkType;
             settings.linkType = 'stream-luv';
-            saveSettings();
+            saveSettingsFile(settings);
             streamLink(elementClick.id);
             settings.linkType = linkTemp;
-            saveSettings();
+            saveSettingsFile(settings);
         }
     }))
     
@@ -440,9 +328,9 @@
         label: 'Remove',
         click() {
             elementClick.parentNode.removeChild(elementClick);
-            getStreamers();
+            loadStreamerFile();
             delete streamers[elementClick.id];
-            saveStreamers();
+            saveStreamerFile(streamers);
         }
     }))
 
@@ -472,10 +360,8 @@
 
     function toggleAutoCollection(id) {
         let collectMsg = document.getElementById(id).querySelector('#collect-state');
-        getStreamers();
-        let collectValue = streamers[id].autocollect;
-        streamers[id].autocollect = !collectValue;
-        collectValue = !collectValue
+        let collectValue = !streamers[id].autocollect;
+        streamers[id].autocollect = collectValue;
         if(collectValue) {
             collectMsg.innerHTML = 'Toggle auto collect <br> Off';
             document.getElementById(id).classList.add('auto-collect_on');
@@ -484,31 +370,8 @@
             document.getElementById(id).classList.remove('auto-collect_on');
         }
         addMessage(`${collectValue ? 'Now' : 'No longer'} auto collecting ${id}`);
-        saveStreamers();
+        saveStreamerFile(streamers);
     }
-
-
-    //SECTION
-    //Local Storage Handelers
-    function getSettings() {
-        settings = JSON.parse(localStorage.getItem('settings'));
-        return settings;
-    }
-
-    function saveSettings() {
-        localStorage.setItem('settings', JSON.stringify(settings));
-    }
-
-    function getStreamers() {
-        streamers = JSON.parse(localStorage.getItem('streamers'));
-    }
-
-    function saveStreamers() {
-        localStorage.setItem('streamers', JSON.stringify(streamers));
-    }
-
-    //SECTION Load settings to main.js on start
-    ipcRenderer.send('load-settings', JSON.parse(localStorage.getItem('settings')));
 
     // ipcRenderer.send('twitch-logout', "get-user");
 </script>

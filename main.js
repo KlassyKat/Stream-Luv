@@ -23,13 +23,14 @@ const iconPath = `${__dirname}/buildResources/icon.ico`;
 let tray = null;
 let pauseShortcut;
 let muteStates = {};
+let settings = {};
 
 app.allowRendererProcessReuse = true;
 app.disableHardwareAcceleration();
 //This good?
 app.commandLine.appendSwitch("disable-renderer-backgrounding");
 
-app.on('ready', function () {
+app.on('ready', () => {
     //Main Window
     mainWindowState = windowStateKeeper({
         maximize: false
@@ -107,7 +108,10 @@ ipcMain.on('new-mute-shortcut', (e, data) => {
 })
 let oldMuteShortcut;
 function registerMuteShortcut(shortcut) {
-    let ctrlIndex = shortcut.indexOf('Ctrl');
+    if(!shortcut) {
+        shortcut = ['Ctrl', '\''];
+    }
+    let ctrlIndex = shortcut.indexOf('Ctrl') ;
     if(ctrlIndex > -1) {
         shortcut[ctrlIndex] = 'CmdOrCtrl';
     }
@@ -186,7 +190,7 @@ async function autoTheaterFn(payload) {
 // https://www.electronjs.org/docs/api/shell#shellwriteshortcutlinkshortcutpath-operation-options-windows
 
 //Open add stream window
-ipcMain.on('open-stream-window', function () {
+ipcMain.on('open-stream-window', () => {
     addStreamWindow = new BrowserWindow({
         webPreferences: {
             nodeIntegration: true
@@ -204,17 +208,21 @@ ipcMain.on('open-stream-window', function () {
     });
     addStreamWindow.setResizable(false); //Workaround
     addStreamWindow.loadFile(`${__dirname}/addStreamWindow.html`);
-    addStreamWindow.on('ready-to-show', function () {
+    addStreamWindow.on('ready-to-show', () => {
         addStreamWindow.show();
     });
 
-    addStreamWindow.on('closed', function () {
+    addStreamWindow.on('focus', () => {
+        loadStreamers();
+    })
+
+    addStreamWindow.on('closed', () => {
         addStreamWindow = null;
     })
 })
 
 //Open add stetting window
-ipcMain.on('open-setting-window', function () {
+ipcMain.on('open-setting-window', () => {
     settingWindow = new BrowserWindow({
         webPreferences: {
             nodeIntegration: true
@@ -231,34 +239,38 @@ ipcMain.on('open-setting-window', function () {
     });
     settingWindow.setResizable(false); //Workaround
     settingWindow.loadFile(`${__dirname}/settingWindow.html`);
-    settingWindow.on('ready-to-show', function () {
+    settingWindow.on('ready-to-show', () => {
         settingWindow.show();
     });
 
-    settingWindow.on('closed', function () {
+    settingWindow.on('focus', () => {
+        loadSettings();
+    })
+
+    settingWindow.on('closed', () => {
         settingWindow = null;
     })
 });
 
-
-ipcMain.on('stream-added', function () {
+// ?????? It is completely unfathomable why this is here but it doesn't work without it
+ipcMain.on('stream-added', () => {
     mainWindow.webContents.send('load-streams');
 });
 
-ipcMain.on('minimize-window', function () {
+ipcMain.on('minimize-window', () => {
     mainWindow.minimize();
 });
 
-ipcMain.on('close-main-window', function () {
+ipcMain.on('close-main-window', () => {
     mainWindow.hide();
     // mainWindow.close();
 });
 
-ipcMain.on('close-stream-window', function () {
+ipcMain.on('close-stream-window', () => {
     addStreamWindow.close();
 });
 
-ipcMain.on('close-setting-window', function () {
+ipcMain.on('close-setting-window', () => {
     settingWindow.close();
 });
 
@@ -310,7 +322,7 @@ ipcMain.on('open-auto-collect', async (e, args) => {
     }
     if(type == 3 || type == 2) {
         if(!collectionInterval) {
-            collectionInterval = setInterval(autoCollect, 10000);
+            collectionInterval = setInterval(autoCollect, 5000);
         }
     }
 })
@@ -338,7 +350,7 @@ ipcMain.on('toggle-auto-collection', async (e, data) => {
 })
 
 //SECTION Stream shell windows
-let startMuted = false;
+// let startMuted = false;
 let autoTheater = false;
 async function openWindow(stream) {
     if (collectionWindows[stream]) {
@@ -376,14 +388,16 @@ async function openWindow(stream) {
         height: streamWindowState.height - 32
     });
 
-    view.webContents.setAudioMuted(startMuted);
+    view.webContents.setAudioMuted(settings.startmuted);
     view.webContents.loadURL("https://www.twitch.tv/" + stream);
 
     view.webContents.on('new-window', (e, url) => {
-        shell.openExternal(url);
+        e.preventDefault();
+        shell.openItem(url);
     });
 
     //www.twitch.tv/klassykat?refferal=raid
+    //https://clips.twitch.tv/WonderfulSweetWoodcockJebaited/edit
     view.webContents.on('did-navigate-in-page', (e, url) => {
         // let nameStart = url.lastIndexOf('/');
         let nameStart = url.indexOf('/', 16);
@@ -396,11 +410,20 @@ async function openWindow(stream) {
             streamName = url.slice(nameStart+1);
         }
         console.log(url);
-        if(url.indexOf('www.twitch.tv') > 0) {
+
+        if(url.includes('www.twitch.tv')) {
+            streamName = decodeURIComponent(streamName);
             console.log(streamName);
             window.setTitle(streamName);
             window.webContents.send('new-page-title', streamName);
         }
+    })
+
+    view.webContents.on('context-menu', (e , params) => {
+        window.webContents.send('right-click', {
+            text: params.selectionText,
+            link: params.srcURL
+        });
     })
 
     //SECTION Set Auto Collect Page
@@ -449,9 +472,6 @@ async function openWindow(stream) {
 
     await window.loadFile(`${__dirname}/streamWrapper.html`);
     window.webContents.send('page-title', stream);
-    // window.webContents.on('will-navigate', (e, url) => {
-    //     console.log(url);
-    // })
 
     collectionWindows[stream] = window;
     collectionViews[stream] = view;
@@ -459,15 +479,14 @@ async function openWindow(stream) {
 
     addToFocusList(stream);
 
-    // view.webContents.once('did-start-loading', () => {
-        if(autoTheater) {
-            autoTheaterFn(stream);
-        }
-    // })
-    
+    if(autoTheater) {
+        autoTheaterFn(stream);
+    }
+
+    streamPageSettings(window);
     
     //Debugging
-    // window.webContents.toggleDevTools();
+    window.webContents.toggleDevTools();
 }
 
 //SECTION
@@ -674,13 +693,13 @@ ipcMain.on('set-startup-open', (e, data) => {
 })
 
 //Start Muted
-ipcMain.on('set-start-muted', (e, data) => {
-    if(data) {
-        startMuted = true;
-    } else {
-        startMuted = false;
-    }
-})
+// ipcMain.on('set-start-muted', (e, data) => {
+//     if(data) {
+//         startMuted = true;
+//     } else {
+//         startMuted = false;
+//     }
+// })
 
 //Auto Theater
 ipcMain.on('set-auto-theater', (e, data) => {
@@ -693,14 +712,14 @@ ipcMain.on('set-auto-theater', (e, data) => {
 
 
 //SECTION Load Settings
-ipcMain.on('load-settings', (e, data) => {
-    if(data) {
-        startMuted = data.startmuted;
-        let muteShortcut = data.muteshortcut;
-        registerMuteShortcut(muteShortcut);
-        autoTheater = data.autotheater || false;
-    }
-})
+// ipcMain.on('load-settings', (e, data) => {
+//     if(data) {
+//         startMuted = data.startmuted;
+//         let muteShortcut = data.muteshortcut;
+//         registerMuteShortcut(muteShortcut);
+//         autoTheater = data.autotheater || false;
+//     }
+// })
 
 ipcMain.on('open-support-window', () => {
     supportWindow = new BrowserWindow({
@@ -711,11 +730,9 @@ ipcMain.on('open-support-window', () => {
         y: mainWindowState.y,
         width: 600,
         height: 300,
-        resizeable: false,
         backgroundColor: '#212121',
         frame: false
     });
-    supportWindow.setResizable(false); //Workaround
     supportWindow.loadFile(`${__dirname}/support.html`);
 
     supportWindow.on('closed', () => {
@@ -732,11 +749,9 @@ ipcMain.on('open-info-window', () => {
         y: mainWindowState.y,
         width: 600,
         height: 300,
-        resizeable: false,
         backgroundColor: '#212121',
         frame: false
     });
-    infoWindow.setResizable(false); //Workaround
     infoWindow.loadFile(`${__dirname}/info.html`);
 
     infoWindow.on('closed', () => {
@@ -754,7 +769,7 @@ ipcMain.on('close-info-window', () => {
 
 //File System
 const filePath = `${app.getPath('userData')}/streamers.json`;
-ipcMain.on('load-streamers', () => {
+ipcMain.on('get-streamers', () => {
     loadStreamers();
 })
 ipcMain.on('save-streamers', (e, file) => {
@@ -776,6 +791,83 @@ function loadStreamers() {
         if(err) {
             console.log(err)
         }
-        mainWindow.webContents.send('send-streamers', data);
+        if(!data) {
+            data = {};
+        }
+        BrowserWindow.getFocusedWindow().webContents.send('send-streamers', data);
     })
+}
+
+let settingsFilePath = `${app.getPath('userData')}/settings.json`;
+ipcMain.on('get-settings', () => {
+    loadSettings();
+})
+ipcMain.on('save-settings', (e, file) => {
+    saveSettings(file);
+}) 
+
+function saveSettings(file) {
+    file = JSON.stringify(file);
+    fs.writeFile(settingsFilePath, file, (err) => {
+        if(err) {
+            console.log(err);
+        }
+        console.log('Settings Saved.');
+        loadSettings();
+    })
+}
+
+function loadSettings() {
+    fs.readFile(settingsFilePath, 'utf8', (err, data) => {
+        if(err || !data || data == 'undefined') {
+            let data = {
+                startmuted: false,
+                linkType: 'browser',
+                // globalautoopen: false,???
+                autoopentype: 'browser',
+                pause: false,
+                muteshortcut: ['Ctrl','\''],
+                autotheater: false
+            }
+            saveSettings(data);
+        }
+        settings = JSON.parse(data);
+        let windows = BrowserWindow.getAllWindows();
+        for(let window of windows) {
+            if(window) {
+                window.webContents.send('send-settings', data);
+            }
+        }
+    })
+}
+
+ipcMain.on('add-stream', () => {
+    mainWindow.webContents.send('new-stream');
+})
+
+function streamPageSettings(streamWindow) {
+    fs.readFile(settingsFilePath, 'utf8', (err, data) => {
+        if(err) {
+            console.log(err);
+            throw err;
+        }
+        streamWindow.webContents.send('send-view-settings', data);
+    })
+}
+
+ipcMain.on('load-main-settings', () => {
+    loadMainSettings();
+})
+function loadMainSettings() {
+    fs.readFile(settingsFilePath, 'utf8', (err, data) => {
+        if(err) {
+            console.log(err);
+            throw err;
+        }
+        data = JSON.parse(data);
+        if(data.muteshortcut != settings.muteshortcut) {
+            registerMuteShortcut(data.muteshortcut);
+        }
+        settings = data;
+    });
 }

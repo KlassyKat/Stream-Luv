@@ -21,7 +21,11 @@
     } = require('electron');
 
     let streamInput = document.querySelector(".url-input");
-    let streams = JSON.parse(localStorage.getItem('streamers')) || {};
+    let streams = {};
+    ipcRenderer.on('send-streamers', (e, data) => {
+        console.log('Add window send streamers')
+        streams = JSON.parse(data);
+    })
 
     function closeWindow() {
         ipcRenderer.send("close-stream-window");
@@ -29,7 +33,7 @@
 
     async function addStream() {
         stream = streamInput.value.toLowerCase().replace(/ /g, '');
-        let streamCheck = await apiCalls.getStreamer(stream);
+        let streamCheck = await apiCalls.isStreamer(stream);
         if(!streamCheck) {
             errorMessage(streamInput.value + ' is not a stream');
             return;
@@ -41,11 +45,10 @@
                     autoopen: false,
                     live: false,
                     streamopen: false,
-                    autocollect: false,
-                    wentoffline: 0
+                    autocollect: false
                 };
-                localStorage.setItem("streamers", JSON.stringify(streams));
-                ipcRenderer.send("stream-added");
+                ipcRenderer.send('save-streamers', streams);
+                ipcRenderer.send('add-stream');
                 closeWindow();
             } else {
                 //Add notification
