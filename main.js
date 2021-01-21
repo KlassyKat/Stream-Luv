@@ -199,7 +199,8 @@ ipcMain.on('open-stream-window', () => {
     addStreamWindow = new BrowserWindow({
         webPreferences: {
             nodeIntegration: true,
-            contextIsolation: false
+            contextIsolation: false,
+            spellcheck: false
         },
         modal: true,
         x: mainWindowState.x - 25,
@@ -856,12 +857,13 @@ function loadSettings() {
                 autotheater: false
             }
             saveSettings(data);
-        }
-        settings = JSON.parse(data);
-        let windows = BrowserWindow.getAllWindows();
-        for(let window of windows) {
-            if(window) {
-                window.webContents.send('send-settings', data);
+        } else {
+            settings = JSON.parse(data);
+            let windows = BrowserWindow.getAllWindows();
+            for(let window of windows) {
+                if(window) {
+                    window.webContents.send('send-settings', data);
+                }
             }
         }
     })
@@ -875,7 +877,6 @@ function streamPageSettings(streamWindow) {
     fs.readFile(settingsFilePath, 'utf8', (err, data) => {
         if(err) {
             console.log(err);
-            throw err;
         }
         streamWindow.webContents.send('send-view-settings', data);
     })
@@ -888,7 +889,6 @@ function loadMainSettings() {
     fs.readFile(settingsFilePath, 'utf8', (err, data) => {
         if(err) {
             console.log(err);
-            throw err;
         }
         data = JSON.parse(data);
         if(data.muteshortcut != settings.muteshortcut) {

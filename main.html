@@ -307,6 +307,13 @@
             saveSettingsFile(settings);
         }
     }))
+
+    menu.append(new MenuItem({
+        label: 'Copy Link',
+        click() {
+            navigator.clipboard.writeText('https://www.twitch.tv/' + elementClick.id);
+        }
+    }))
     
     menu.append(new MenuItem({
         type: 'separator'
