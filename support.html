@@ -10,14 +10,62 @@
         </span>
     </nav>
     <div class="container">
-
+        <div class="item">
+            <h3 class="header">Developer</h3>
+            <p class="details">Gabe Alexander</p>
+        </div>
+        <div class="item">
+            <h3 class="header">Source Code</h3>
+            <p class="details site" onclick="openLink(this.innerText)">https://github.com/KlassyKat/Stream-Luv</p>
+        </div>
+        <div class="item">
+            <h3 class="header">Issues</h3>
+            <p class="details site" onclick="openLink(this.innerText)">https://github.com/KlassyKat/Stream-Luv/issues</p>
+        </div>
+        <div class="item">
+            <h3 class="header">Links</h3>
+            <button class="link" id="twitch-btn" onclick="openLink(`https://twitch.tv/klassykat`)">
+                <svg width="28" height="28" viewBox="0 0 32 32">
+                    <path
+                        d="M9.153,25.868l-6.963,0l-0,-20.301l5.902,-5.567l21.718,0l0,18.242l-7.626,7.626l-6.574,0l-6.457,6.132l-0,-6.132Z"
+                        style="fill:#9147ff;" />
+                    <path d="M13.667,19.505l-4.619,-0l-0,-17.487l18.477,-0l-0,12.796l-4.691,4.691l-4.625,-0l-4.542,4.314l-0,-4.314Z"
+                        style="fill:#fff;" />
+                    <rect x="16" y="6.892" width="2.286" height="6.772" style="fill:#9147ff;" />
+                    <rect x="21.659" y="6.892" width="2.286" height="6.772" style="fill:#9147ff;" />
+                </svg>
+                <p class="details">Twitch</p>
+            </button>
+            <button class="link" id="twitter-btn" onclick="openLink(`https://twitter.com/KlassyKatCoding`)">
+                <svg width="28" height="28" viewBox="0 0 32 32">
+                    <path
+                        d="M22.14,2.997c1.824,0.013 3.602,0.766 4.813,2.09c1.463,-0.312 2.856,-0.828 4.165,-1.585c-0.512,1.497 -1.402,2.747 -2.863,3.624c1.309,-0.169 2.552,-0.526 3.745,-1.025c-0.845,1.319 -1.938,2.451 -3.267,3.402c0.281,16.779 -16.869,24.018 -28.733,16.588c3.412,0.337 6.666,-0.412 9.695,-2.718c-3.101,-0.173 -5.184,-1.971 -6.114,-4.56c0.924,0.137 1.965,0.131 2.943,-0.118c-3.217,-0.745 -5.21,-3.268 -5.246,-6.526c0.911,0.496 1.896,0.777 2.95,0.815c-1.687,-0.988 -4.328,-4.811 -2.01,-8.769c3.946,4.81 8.924,6.521 13.534,6.862c-0.12,-0.494 -0.183,-1.028 -0.183,-1.558c0,-3.6 3.085,-6.548 6.571,-6.522Z"
+                        style="fill:#00a2f5;" />
+                </svg>
+                <p class="details">Twitter</p>
+            </button>
+            <button class="link" id="donate-btn" onclick="openLink('https://www.paypal.com/donate?business=GBZV3DBUUFKGG&currency_code=USD')">
+                <svg width="28" height="28" viewBox="0 0 32 32">
+                    <circle cx="16" cy="16" r="14.864" style="fill:#fbd145;" />
+                    <path
+                        d="M22.11,8.8c-1.149,-1.208 -2.504,-2.15 -4.389,-2.415l0,-2.975l-2.853,-0l-0,3.033c-2.771,0.56 -4.477,2.563 -4.477,5.45c-0,5.302 7.776,5.243 7.776,8.277c-0,1.355 -0.74,2.032 -2.387,2.032c-1.416,0 -2.711,-0.589 -4.212,-1.708l-1.884,2.913c1.384,1.266 3.446,2.032 5.184,2.238l-0,2.945l2.853,0l0,-3.063c3.036,-0.648 4.595,-2.828 4.595,-5.655c0,-5.626 -7.776,-5.391 -7.776,-8.189c0,-1.326 0.769,-1.885 2.181,-1.885c1.238,-0 2.152,0.5 3.212,1.473l2.177,-2.471Z"
+                        style="fill-rule:nonzero;fill:black" />
+                </svg>                
+                <p class="details">Donate</p>
+            </button>
+            
+        </div>
     </div>
 </body>
 
 <script>
-    let { ipcRenderer } = require('electron');
+    let { ipcRenderer, shell } = require('electron');
 
     function closeWindow() {
         ipcRenderer.send('close-support-window');
+    }
+
+    function openLink(url) {
+        shell.openExternal(url);
     }
 </script>

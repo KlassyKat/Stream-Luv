@@ -9,7 +9,8 @@ const {
     shell,
     BrowserView,
     globalShortcut,
-    WebContents
+    WebContents,
+    webContents
 } = require('electron');
 const windowStateKeeper = require('electron-window-state');
 const fs = require('fs');
@@ -28,12 +29,14 @@ let streamWindowState;
 const iconPath = `${__dirname}/buildResources/icon.ico`;
 let tray = null;
 let pauseShortcut;
+// let muteStates = {};
 let settings = {};
+let streamers = {};
 
 app.allowRendererProcessReuse = true;
 app.disableHardwareAcceleration();
 //This good?
-app.commandLine.appendSwitch("disable-renderer-backgrounding");
+// app.commandLine.appendSwitch("disable-renderer-backgrounding");
 
 app.on('ready', () => {
     //Main Window
@@ -42,7 +45,9 @@ app.on('ready', () => {
     });
 
     streamWindowState = windowStateKeeper({
-        maximize: true
+        maximize: true,
+        defaultHeight: 600,
+        defaultWidth: 1000
     });
 
     mainWindow = new BrowserWindow({
@@ -131,21 +136,19 @@ function registerMuteShortcut(shortcut) {
         checkMuteStates();
     });
 }
+
 let lastFocus = [];
 function checkMuteStates() {
-    for(let stream in collectionWindows) {
-        collectionWindows[stream].webContents.send('get-mute-val');
-    }
-    // if(audibleStreams.length == 0 && Object.keys(collectionWindows).length > 1 && lastFocus) {
-    //     collectionWindows[stream].webContents.send('toggle-stream-mute');
-    // }
-    if(collectionWindows[lastFocus[0]]) {
-        collectionWindows[lastFocus[0]].webContents.send('mute-shortcut');
+    //Mute all other windows
+    for(let stream in collectionViews) {
+        if(!collectionViews[stream].webContents.isAudioMuted() && stream != lastFocus[0]) {
+            collectionWindows[stream].webContents.send('mute-shortcut');
+        } else if (stream == lastFocus[0]) {
+            collectionWindows[stream].webContents.send('mute-shortcut');
+        }
     }
 }
 
-ipcMain.on('send-mute-val', (e, data) => {
-});
 
 ipcMain.on('recieved-focus', (e, data) => {
     addToFocusList(data);
@@ -166,21 +169,41 @@ function removeFromFocusList(payload) {
     lastFocus.splice(startIndex, 1);
 }
 
-//Auto Theater
-async function autoTheaterFn(payload) {
+//Set theater and chat
+async function autoFormat(payload) {
     let page = await pie.getPage(browser, collectionViews[payload]);
-    let theaterBtn = await findTheaterBtn();
-    if(theaterBtn) {
-        theaterBtn.click();
+    if(settings.autotheater) {
+        autoTheaterFn();
     }
-    function findTheaterBtn() {
-        let btn = null;
-        while(!btn) {
-            btn = page.$(".video-player__overlay div[data-a-target=player-controls] [data-a-target=player-theatre-mode-button]");
+    autoExpandChat();
+    //Auto Theater
+    async function autoTheaterFn() {
+        let player = await page.$(".video-player__container--theatre[data-test-selector='video-player__video-container']");
+        if(!player) {
+            let theaterBtn = await page.$(".video-player__overlay div[data-a-target=player-controls] [data-a-target=player-theatre-mode-button]");
+            if(theaterBtn) {
+                theaterBtn.click();
+            }
         }
-        return btn;
+    }
+
+    //Auto Expand Chat
+    async function autoExpandChat() {
+        let expandBtn = await page.$("[araia-label='Expand Chat'");
+        if(expandBtn) {
+            console.log('Click Chat btn');
+            expandBtn.click();
+        }
     }
 }
+
+async function checkStreamCrash(payload) {
+    console.log('Player stopped: ' + payload);
+    //Pupeteer
+    //Check DOM for error message
+}
+
+
 
 
 // Opening on startup
@@ -225,7 +248,8 @@ ipcMain.on('open-setting-window', () => {
     settingWindow = new BrowserWindow({
         webPreferences: {
             nodeIntegration: true,
-            contextIsolation: false
+            contextIsolation: false,
+            spellcheck: false
         },
         modal: true,
         x: mainWindowState.x - 25,
@@ -354,7 +378,7 @@ ipcMain.on('toggle-auto-collection', async (e, data) => {
 
 //SECTION Stream shell windows
 // let startMuted = false;
-let autoTheater = false;
+// let autoTheater = false;
 async function openWindow(stream) {
     if (collectionWindows[stream]) {
         collectionWindows[stream].focus();
@@ -367,6 +391,8 @@ async function openWindow(stream) {
             contextIsolation: false,
             enableRemoteModule: true,
             spellcheck: true
+            //Not resolving background collect
+            // backgroundThrottling: false
         },
         x: streamWindowState.x,
         y: streamWindowState.y,
@@ -387,7 +413,6 @@ async function openWindow(stream) {
     // Context Menu
     contextMenu({
         window: view,
-        // showCopyImage: true,
         showInspectElement: false
     });
     let viewAnchor = {
@@ -403,9 +428,11 @@ async function openWindow(stream) {
     view.webContents.setAudioMuted(settings.startmuted);
     view.webContents.loadURL("https://www.twitch.tv/" + stream);
 
-    view.webContents.on('new-window', (e, url) => {
+    view.webContents.setBackgroundThrottling(false);
+
+    view.webContents.on('new-window', async(e, url) => {
         e.preventDefault();
-        shell.openPath(url);
+        shell.openExternal(url);
     });
 
     //www.twitch.tv/klassykat?refferal=raid
@@ -439,6 +466,11 @@ async function openWindow(stream) {
             text: params.selectionText,
             link: params.srcURL
         });
+    });
+
+    //Check stream crashed
+    view.webContents.on('media-paused', () => {
+        checkStreamCrash(stream);
     });
 
     //SECTION Set Auto Collect Page
@@ -494,14 +526,16 @@ async function openWindow(stream) {
 
     addToFocusList(stream);
 
-    if(autoTheater) {
-        autoTheaterFn(stream);
-    }
+    view.webContents.on('did-finish-load', () => {
+        autoFormat(stream);
+    });
+
+    
 
     streamPageSettings(window);
     
     //Debugging
-    window.webContents.toggleDevTools();
+    // window.webContents.toggleDevTools();
 }
 
 //SECTION
@@ -526,15 +560,24 @@ ipcMain.on('close-stream-shell', async(e, data) => {
 });
 ipcMain.on('close-stream-alt', async(e, data) => {
     console.log('Close: ' + data);
+    //I guess this works
+    // await collectionViews[data].webContents.forcefullyCrashRenderer();
+    await collectionWindows[data].setBrowserView(null);
+    await collectionViews[data].webContents.destroy();
     await collectionWindows[data].destroy();
-    // await collectionViews[data].destroy();
     delete collectionWindows[data];
     delete collectionViews[data];
     if(collectionKeys.indexOf(data) > -1) {
         collectionKeys.splice(collectionKeys.indexOf(data), 1);
     }
     removeFromFocusList(data);
+    console.log(Object.keys(collectionViews));
 });
+
+// ipcMain.on('set-frames', (e, data) => {
+//     console.log('Frame rate down')
+//     collectionWindows[data].webContents.setFrameRate(1);
+// })
 
 async function autoCollect() {
     console.log('Auto Collect: ' + collectionKeys);
@@ -718,13 +761,13 @@ ipcMain.on('set-startup-open', (e, data) => {
 // })
 
 //Auto Theater
-ipcMain.on('set-auto-theater', (e, data) => {
-    if(data) {
-        autoTheater = true;
-    } else {
-        autoTheater = false;
-    }
-});
+// ipcMain.on('set-auto-theater', (e, data) => {
+//     if(data) {
+//         autoTheater = true;
+//     } else {
+//         autoTheater = false;
+//     }
+// })
 
 
 //SECTION Load Settings
@@ -745,10 +788,13 @@ ipcMain.on('open-support-window', () => {
         },
         x: mainWindowState.x,
         y: mainWindowState.y,
-        width: 600,
-        height: 300,
+        width: 400,
+        height: 500,
         backgroundColor: '#212121',
-        frame: false
+        frame: false,
+        resizable: false,
+        modal: true,
+        parent: settingWindow
     });
     supportWindow.loadFile(`${__dirname}/support.html`);
 
@@ -768,7 +814,9 @@ ipcMain.on('open-info-window', () => {
         width: 600,
         height: 300,
         backgroundColor: '#212121',
-        frame: false
+        frame: false,
+        modal: true,
+        parent: settingWindow
     });
     infoWindow.loadFile(`${__dirname}/info.html`);
 
@@ -795,6 +843,7 @@ ipcMain.on('save-streamers', (e, file) => {
 }); 
 
 function saveStreamers(file) {
+    streamers = file;
     file = JSON.stringify(file);
     fs.writeFile(filePath, file, (err) => {
         if(err) {
@@ -814,6 +863,11 @@ function loadStreamers() {
         }
         let focusedWindow = BrowserWindow.getFocusedWindow() || mainWindow;
         focusedWindow.webContents.send('send-streamers', data);
+        try {
+            streamers = JSON.parse(data);
+        } catch (e) {
+            streamers = data;
+        }
     });
 }
 
@@ -889,3 +943,11 @@ function loadMainSettings() {
         settings = data;
     });
 }
+
+//Set stream open to false on quit
+app.on('before-quit', () => {
+    for(let stream in streamers) {
+        streamers[stream].streamopen = false;
+    }
+    saveStreamers(streamers);
+});

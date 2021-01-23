@@ -85,6 +85,8 @@
 
     document.addEventListener('visibilitychange', (e) => {
         console.log('Visibility: ' + e);
+        console.log(e);
+        ipcRenderer.send('set-frames', streamPage);
     })
 
     //Start Muted
@@ -123,9 +125,9 @@
         ipcRenderer.send('toggle-stream-mute', {window: streamPage, val: mute});
     }
 
-    ipcRenderer.on('get-mute-val', () => {
-        ipcRenderer.send('send-mute-val', {streamName: streamPage, val: mute});
-    })
+    // ipcRenderer.on('get-mute-val', () => {
+    //     ipcRenderer.send('send-mute-val', {streamName: streamPage, val: mute});
+    // })
 
     ipcRenderer.on('get-focus', () => {
         ipcRenderer.send('recieved-focus', streamPage);
@@ -147,44 +149,6 @@
         ipcRenderer.send('toggle-auto-collection', streamPage);
         getAutoCollectionValue();
     }
-
-    //Context Menu
-    // {
-    //     let rightClickMenu = new Menu();
-    //     let rightClickMenuItems = [];
-    //     rightClickMenuItems.push(new MenuItem({
-    //         label: 'Reload',
-    //         click: () => {
-    //             console.log('UwU');
-    //         }
-    //     }));
-    //     rightClickMenuItems.push(new MenuItem({
-    //         label: 'Copy',
-    //         click: () => {
-    //             clipboard.writeText(selectedText);
-    //             // clipboard.writeText(url);
-    //         }
-    //     }));
-    //     rightClickMenuItems.push(new MenuItem({
-    //         label: "Paste",
-    //         click: () => {
-
-    //         }
-    //     }));
-    //     for(item of rightClickMenuItems) {
-    //         rightClickMenu.append(item);
-    //     }
-
-    //     ipcRenderer.on('right-click', (e, data) => {
-    //         selectedText = data.text;
-    //         url = data.link;
-    //         rightClickMenu.popup({
-    //             window: remote.getCurrentWindow()
-    //         });
-    //     })
-    //     let selectedText;
-    //     let url;
-    // }
     
 
     //Window handling

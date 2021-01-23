@@ -60,7 +60,12 @@
                 </svg>
             </button>
             <span></span>
-            <button onclick="openSupportWindow()" id="support-me">&#10084</button>
+            <button onclick="openSupportWindow()" id="support-me">
+                <svg width="100%" height="100%" viewBox="0 0 32 32" style="fill: red">
+                    <path
+                        d="M16.012,6.556l-2.345,-2.051c-3.126,-3.126 -8.195,-3.126 -11.322,0c-3.127,3.127 -3.127,8.196 -0,11.323l13.667,14.012l13.643,-14.012c3.127,-3.127 3.127,-8.196 0,-11.323c-3.127,-3.126 -8.196,-3.126 -11.322,0l-2.321,2.051Z" />
+                </svg>
+            </button>
         </div>
         <div class="scroll-wrapper">
             <div class="menu-items">
@@ -279,7 +284,6 @@
     let startMutedState = document.getElementById('start-muted-state');
 
     let setSpan = document.getElementById('toggle-mute-input');
-    let shortcutVal = settings.muteshortcut || ['Ctrl', '\''];
     let oldShortcut = [];
 
     let autoTheaterSwitch = document.getElementById('auto-theater-switch');
@@ -325,7 +329,7 @@
         }
 
         //Mute Shortcut
-        setSpan.value = shortcutVal.join('+');
+        setSpan.value = settings.muteshortcut.join('+');
 
         //Auto Theater
         if (settings.autotheater) {
@@ -443,7 +447,7 @@
             settings.autotheater = false;
             autoTheaterState.innerHTML = 'Off';
         }
-        ipcRenderer.send('set-auto-theater', e.checked);
+        // ipcRenderer.send('set-auto-theater', e.checked);
         saveSettings();
     }
 

@@ -3,6 +3,7 @@ body, body *{
     padding: 0;
     box-sizing: border-box;
     font-family: 'Montserrat', sans-serif;
+    overflow: hidden;
 }
 
 .control-bar {
@@ -34,6 +35,10 @@ body, body *{
 }
 
 /* List CSS */
+.content-wrapper {
+    overflow-y: scroll;
+    height: calc(100vh - 32px);
+}
 ul {
     list-style: none;
     padding: 0;
@@ -105,8 +110,8 @@ ul div {
 }
 
 .section-content {
-    max-height: 80vh;
+    /* max-height: 80vh;
     overflow-x: hidden;
-    overflow-y: scroll;
+    overflow-y: scroll; */
     color: white;
 }

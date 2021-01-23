@@ -1,7 +1,9 @@
 body, body *{
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
+    /* box-sizing: border-box; */
+    font-family: 'Montserrat';
+    color: white;
 }
 
 .control-bar {
@@ -30,4 +32,69 @@ body, body *{
     stroke: #707070;
     fill: #707070;
     stroke-width: 5;
+}
+
+.container {
+    display: grid;
+    grid-template-rows: 1fr 1fr 1fr 2fr;
+    height: calc(100vh - 32px);
+    width: 100%;
+    justify-content: center;
+}
+
+.item {
+    text-align: center;
+    padding: 10px;
+}
+
+.header {
+    margin: 5px;
+}
+
+.site {
+    cursor: pointer;
+    transition: 0.2s all ease-in-out;
+}
+
+.site:hover {
+    color: #00a2f5;
+}
+
+.link {
+    padding: 4px 5px;
+    border-radius: 5px;
+    display: flex;
+    width: min-content;
+    margin: 5px auto;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    outline: none;
+    transition: 0.2s all ease-in-out;
+}
+
+#twitch-btn {
+    background-color: hsl(264, 100%, 46%);
+}
+#twitch-btn:hover {
+    background-color: hsl(264, 100%, 39%);
+}
+
+#twitter-btn {
+    background-color:hsl(209, 100%, 46%);
+}
+#twitter-btn:hover {
+    background-color:hsl(209, 100%, 39%);
+}
+
+#donate-btn {
+    background-color:#FF8000;
+}
+#donate-btn:hover {
+    background-color:hsl(30, 100%, 43%);
+}
+
+.link > svg {
+    padding-right: 5px;
 }
