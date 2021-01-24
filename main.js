@@ -448,7 +448,7 @@ async function openWindow(stream) {
         }
         console.log(url);
 
-        if(url.includes('www.twitch.tv')) {
+        if(url.includes('www.twitch.tv') && !url.includes('www.twitch.tv/videos')) {
             streamName = decodeURIComponent(streamName);
             try{
                 window.setTitle(streamName);
