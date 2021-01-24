@@ -97,6 +97,12 @@
 
     ipcRenderer.send('load-main-settings');
 
+    let pauseOpen = [];
+    ipcRenderer.on('resume-open', (e, id) => {
+        if(pauseOpen.indexOf(id) > -1) {
+            pauseOpen.splice(pauseOpen.indexOf(id), 1);
+        }
+    })
     //Storage
     let streamers;
     loadStreamerFile();
@@ -233,7 +239,12 @@
     // Type 3: StreamLuv Window With auto collection
     function openAutoCollect(id, type) {
         console.log(type);
-        ipcRenderer.send("open-auto-collect", {id, type});
+        if(!pauseOpen.includes(id)) {
+            pauseOpen.push(id);
+            ipcRenderer.send("open-auto-collect", {id, type});
+        } else {
+            console.log(pauseOpen);
+        }
     }
 
     // pause scope

@@ -115,3 +115,13 @@ ul div {
     overflow-y: scroll; */
     color: white;
 }
+
+.instructions {
+    line-height: 1.6em;
+    padding: 5px;
+}
+
+.step-image {
+    max-width: 80vw;
+    margin-bottom: 30px;
+}

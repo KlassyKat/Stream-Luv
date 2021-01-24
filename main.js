@@ -380,6 +380,7 @@ ipcMain.on('toggle-auto-collection', async (e, data) => {
 async function openWindow(stream) {
     if (collectionWindows[stream]) {
         collectionWindows[stream].focus();
+        mainWindow.webContents.send('resume-open', stream);
         return;
     }
     console.log(stream);
@@ -394,9 +395,9 @@ async function openWindow(stream) {
         },
         x: streamWindowState.x,
         y: streamWindowState.y,
-        width: streamWindowState.width,
-        height: streamWindowState.height,
-        minWidth: 500,
+        width: streamWindowState.width || 1200,
+        height: streamWindowState.height || 750,
+        minWidth: 920,
         minHeight: 400,
         show: true,
         frame: false,
@@ -524,6 +525,10 @@ async function openWindow(stream) {
 
     addToFocusList(stream);
 
+    view.webContents.on('did-start-loading', () => {
+        mainWindow.webContents.send('resume-open', stream);
+    })
+
     view.webContents.on('did-finish-load', () => {
         autoFormat(stream);
     })
@@ -569,7 +574,8 @@ ipcMain.on('close-stream-alt', async(e, data) => {
         collectionKeys.splice(collectionKeys.indexOf(data), 1);
     }
     removeFromFocusList(data);
-    console.log(Object.keys(collectionViews));
+    mainWindow.webContents.send('resume-open', data);
+    console.log('What' + Object.keys(collectionViews));
 });
 
 // ipcMain.on('set-frames', (e, data) => {
@@ -809,8 +815,8 @@ ipcMain.on('open-info-window', () => {
         },
         x: mainWindowState.x,
         y: mainWindowState.y,
-        width: 600,
-        height: 300,
+        width: 1200,
+        height: 750,
         backgroundColor: '#212121',
         frame: false,
         modal: true,
