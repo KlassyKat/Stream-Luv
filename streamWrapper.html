@@ -139,9 +139,13 @@
     }
     ipcRenderer.on('send-auto-collect-value', (e, data) => {
         if(data) {
-            windowTitle.style.color = 'hsl(192, 60%, 40%)';
+            // windowTitle.style.color = 'hsl(192, 60%, 40%)';
+            windowTitle.classList.remove('window-title_inactive');
+            windowTitle.classList.add('window-title_active');
         } else {
-            windowTitle.style.color = '#fff';
+            // windowTitle.style.color = '#fff';
+            windowTitle.classList.remove('window-title_active');
+            windowTitle.classList.add('window-title_inactive');
         }
     })
 

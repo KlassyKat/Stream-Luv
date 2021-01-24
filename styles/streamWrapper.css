@@ -27,7 +27,11 @@ body {
 }
 
 #window-title:hover {
-    text-shadow: 0px 0px 6px #ff8000;
+    text-decoration: underline;
+}
+
+.window-title_active {
+    color: hsl(192, 60%, 40%) !important;
 }
 
 .control-bar>span:hover {
