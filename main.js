@@ -7,14 +7,24 @@ const {
     shell,
     BrowserView,
     globalShortcut,
-    WebContents,
-    webContents
 } = require('electron');
 const windowStateKeeper = require('electron-window-state');
 const fs = require('fs');
 
 const contextMenu = require('electron-context-menu');
 
+const unhandled = require('electron-unhandled');
+const {openNewGitHubIssue, debugInfo} = require('electron-util');
+
+unhandled({
+	reportButton: error => {
+		openNewGitHubIssue({
+			user: 'KlassyKat',
+			repo: 'StreamLuv',
+			body: `\`\`\`\n${error.stack}\n\`\`\`\n\n---\n\n${debugInfo()}`
+		});
+	}
+});
 
 
 let mainWindow;
