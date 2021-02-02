@@ -8,7 +8,8 @@ let apiCalls = {
         return {
             headers: {
                 'Client-ID': APP_TOKEN,
-                'Authorization': `Bearer ${AUTH_TOKEN}`
+                'Authorization': `Bearer ${AUTH_TOKEN}`,
+                'Same-Site': 'None'
             }
         }
     },

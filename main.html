@@ -94,8 +94,8 @@
         MenuItem
     } = remote;
     const Sortable = require('sortablejs');
-
-    ipcRenderer.send('load-main-settings');
+    const Store = require('electron-store');
+    const store = new Store();
 
     let pauseOpen = [];
     ipcRenderer.on('resume-open', (e, id) => {
@@ -103,33 +103,44 @@
             pauseOpen.splice(pauseOpen.indexOf(id), 1);
         }
     })
+
+    //Set HTML Element values
+    let tileWrapper = document.getElementById('tile-wrapper');
+    let streamTile = document.getElementById('place-holder');
+
     //Storage
     let streamers;
     loadStreamerFile();
     function loadStreamerFile() {
-        ipcRenderer.send('get-streamers');
+        streamers = store.get('streamers');
+        loadStreams.initilize(store.get('streamers'));
     }
-    ipcRenderer.on('send-streamers', (e, data) => {
-        console.log('Main Window streamers')
-        streamers = JSON.parse(data);
-        loadStreams.initilize(streamers);
-    })
 
     function saveStreamerFile(streams) {
-        ipcRenderer.send('save-streamers', streams);
+        store.set('streamers', streams);
     }
 
-    let settings = {};
-    loadSettingFile();
-    function loadSettingFile() {
-        let newSettings = {};
-        ipcRenderer.send('get-settings');
+    let settings;
+    if(store.get('settings')) {
+        settings = store.get('settings');
+    } else {
+        settings = {
+            startmuted: false,
+            linkType: 'browser',
+            // globalautoopen: false,???
+            autoopentype: 'browser',
+            pause: false,
+            muteshortcut: ['Ctrl','\''],
+            autotheater: false
+        };
+        saveSettingsFile(settings);
     }
-    ipcRenderer.on('send-settings', (e, data) => {
-        settings = JSON.parse(data);
-    })
+
+    function loadSettingFile() {
+        settings = store.get('settings');
+    }
     function saveSettingsFile(data) {
-        ipcRenderer.send('save-settings', data);
+        store.set('settings', data);
     }
 
     //Adding Streams
@@ -137,9 +148,6 @@
         loadStreamerFile();
     })
 
-    //Set HTML Element values
-    let tileWrapper = document.getElementById('tile-wrapper');
-    let streamTile = document.getElementById('place-holder');
 
     let liveWatchOn = true;
     let streamWatcher;

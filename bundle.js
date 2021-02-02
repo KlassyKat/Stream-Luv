@@ -9,11 +9,10 @@ const {
     shell,
     BrowserView,
     globalShortcut,
-    WebContents,
-    webContents
 } = require('electron');
 const windowStateKeeper = require('electron-window-state');
-const fs = require('fs');
+const Store = require('electron-store');
+const store = new Store();
 
 const contextMenu = require('electron-context-menu');
 
@@ -24,7 +23,7 @@ unhandled({
 	reportButton: error => {
 		openNewGitHubIssue({
 			user: 'KlassyKat',
-			repo: 'electron-unhandled',
+			repo: 'StreamLuv',
 			body: `\`\`\`\n${error.stack}\n\`\`\`\n\n---\n\n${debugInfo()}`
 		});
 	}
@@ -41,14 +40,6 @@ let streamWindowState;
 const iconPath = `${__dirname}/buildResources/icon.ico`;
 let tray = null;
 let pauseShortcut;
-// let muteStates = {};
-let settings = {};
-let streamers = {};
-
-app.allowRendererProcessReuse = true;
-app.disableHardwareAcceleration();
-//This good?
-// app.commandLine.appendSwitch("disable-renderer-backgrounding");
 
 app.on('ready', () => {
     //Main Window
@@ -77,6 +68,10 @@ app.on('ready', () => {
         backgroundColor: '#212121',
         icon: './buildResources/icon.ico'
     });
+
+    //Debugging
+    // mainWindow.webContents.toggleDevTools();
+
     mainWindow.setResizable(false); //Workaround
     mainWindow.loadFile(`${__dirname}/main.html`);
 
@@ -84,7 +79,7 @@ app.on('ready', () => {
     mainWindowState.manage(mainWindow);
 
     //Tray
-    if(process.platform == "win32" || process.platform == "darwin") {
+    // if(process.platform == "win32" || process.platform == "darwin") {
         tray = new Tray(iconPath);
         //Menu Template
         let template = [{
@@ -118,16 +113,17 @@ app.on('ready', () => {
             contextMenu.items[1].checked = data;
             // tray.setContextMenu(contextMenu);
         });
-    }
+    // }
+    registerMuteShortcut(store.get('settings.muteshortcut') || ["Ctrl", "'"]);
 });
 
 //Mute Shortcut
 ipcMain.on('new-mute-shortcut', (e, data) => {
-    try {
+    // try {
         registerMuteShortcut(data);
-    } catch(e) {
-        return;
-    }
+    // } catch(e) {
+    //     return;
+    // }
 });
 let oldMuteShortcut;
 function registerMuteShortcut(shortcut) {
@@ -184,7 +180,7 @@ function removeFromFocusList(payload) {
 //Set theater and chat
 async function autoFormat(payload) {
     let page = await pie.getPage(browser, collectionViews[payload]);
-    if(settings.autotheater) {
+    if(store.get('settings.autotheater')) {
         autoTheaterFn();
     }
     autoExpandChat();
@@ -246,10 +242,6 @@ ipcMain.on('open-stream-window', () => {
         addStreamWindow.show();
     });
 
-    addStreamWindow.on('focus', () => {
-        loadStreamers();
-    });
-
     addStreamWindow.on('closed', () => {
         addStreamWindow = null;
     });
@@ -279,9 +271,9 @@ ipcMain.on('open-setting-window', () => {
         settingWindow.show();
     });
 
-    settingWindow.on('focus', () => {
-        loadSettings();
-    });
+    // settingWindow.on('focus', () => {
+    //     loadSettings();
+    // })
 
     settingWindow.on('closed', () => {
         settingWindow = null;
@@ -316,7 +308,6 @@ ipcMain.on('close-setting-window', () => {
 let collectionWindows = {};
 let collectionViews = {};
 let collectionKeys = [];
-// let collectionPages = {};
 let collectionInterval = null;
 let browser;
 const pie = require('puppeteer-in-electron');
@@ -385,12 +376,8 @@ ipcMain.on('toggle-auto-collection', async (e, data) => {
     }
 });
 
-//Stream Shell context menu
-
 
 //SECTION Stream shell windows
-// let startMuted = false;
-// let autoTheater = false;
 async function openWindow(stream) {
     if (collectionWindows[stream]) {
         collectionWindows[stream].focus();
@@ -438,7 +425,7 @@ async function openWindow(stream) {
         height: streamWindowState.height - 32
     });
 
-    view.webContents.setAudioMuted(settings.startmuted);
+    view.webContents.setAudioMuted(store.get('settings.startmuted'));
     view.webContents.loadURL("https://www.twitch.tv/" + stream);
 
     view.webContents.setBackgroundThrottling(false);
@@ -547,12 +534,9 @@ async function openWindow(stream) {
         autoFormat(stream);
     });
 
-    
-
-    streamPageSettings(window);
-    
+        
     //Debugging
-    // window.webContents.toggleDevTools();
+    window.webContents.toggleDevTools();
 }
 
 //SECTION
@@ -608,7 +592,10 @@ async function autoCollect() {
                 setTimeout(() => {
                     if (claimPoints) {
                         console.log("Points Claimed.");
-                        claimPoints.click();
+                        claimPoints.click()
+                            .catch(err => {
+                                console.log(err);
+                            });
                     }
                 }, 5000);
             }
@@ -678,8 +665,6 @@ ipcMain.on('twitch-login', async () => {
 });
 
 //SECTION Twitch Logout
-// let collectionPages = {};
-
 ipcMain.on('twitch-logout', async (e, logout) => {
     let logoutWindow = new BrowserWindow({
         width: 1920,
@@ -769,34 +754,6 @@ ipcMain.on('set-startup-open', (e, data) => {
     }
 });
 
-//Start Muted
-// ipcMain.on('set-start-muted', (e, data) => {
-//     if(data) {
-//         startMuted = true;
-//     } else {
-//         startMuted = false;
-//     }
-// })
-
-//Auto Theater
-// ipcMain.on('set-auto-theater', (e, data) => {
-//     if(data) {
-//         autoTheater = true;
-//     } else {
-//         autoTheater = false;
-//     }
-// })
-
-
-//SECTION Load Settings
-// ipcMain.on('load-settings', (e, data) => {
-//     if(data) {
-//         startMuted = data.startmuted;
-//         let muteShortcut = data.muteshortcut;
-//         registerMuteShortcut(muteShortcut);
-//         autoTheater = data.autotheater || false;
-//     }
-// })
 
 ipcMain.on('open-support-window', () => {
     supportWindow = new BrowserWindow({
@@ -852,120 +809,15 @@ ipcMain.on('close-info-window', () => {
 });
 
 //File System
-const filePath = `${app.getPath('userData')}/streamers.json`;
-ipcMain.on('get-streamers', () => {
-    loadStreamers();
-});
-ipcMain.on('save-streamers', (e, file) => {
-    saveStreamers(file);
-}); 
-
-function saveStreamers(file) {
-    streamers = file;
-    file = JSON.stringify(file);
-    fs.writeFile(filePath, file, (err) => {
-        if(err) {
-            console.log(err);
-        }
-        console.log('Streamers Saved.');
-    });
-}
-
-function loadStreamers() {
-    fs.readFile(filePath, 'utf8', (err, data) => {
-        if(err) {
-            console.log(err);
-        }
-        if(!data) {
-            data = {};
-        }
-        let focusedWindow = BrowserWindow.getFocusedWindow() || mainWindow;
-        focusedWindow.webContents.send('send-streamers', data);
-        try {
-            streamers = JSON.parse(data);
-        } catch (e) {
-            streamers = data;
-        }
-    });
-}
-
-let settingsFilePath = `${app.getPath('userData')}/settings.json`;
-ipcMain.on('get-settings', () => {
-    loadSettings();
-});
-ipcMain.on('save-settings', (e, file) => {
-    saveSettings(file);
-}); 
-
-function saveSettings(file) {
-    file = JSON.stringify(file);
-    fs.writeFile(settingsFilePath, file, (err) => {
-        if(err) {
-            console.log(err);
-        }
-        console.log('Settings Saved.');
-        loadSettings();
-    });
-}
-
-function loadSettings() {
-    fs.readFile(settingsFilePath, 'utf8', (err, data) => {
-        if(err || !data || data == 'undefined') {
-            let data = {
-                startmuted: false,
-                linkType: 'browser',
-                // globalautoopen: false,???
-                autoopentype: 'browser',
-                pause: false,
-                muteshortcut: ['Ctrl','\''],
-                autotheater: false
-            };
-            saveSettings(data);
-        } else {
-            settings = JSON.parse(data);
-            let windows = BrowserWindow.getAllWindows();
-            for(let window of windows) {
-                if(window) {
-                    window.webContents.send('send-settings', data);
-                }
-            }
-        }
-    });
-}
-
 ipcMain.on('add-stream', () => {
     mainWindow.webContents.send('new-stream');
 });
 
-function streamPageSettings(streamWindow) {
-    fs.readFile(settingsFilePath, 'utf8', (err, data) => {
-        if(err) {
-            console.log(err);
-        }
-        streamWindow.webContents.send('send-view-settings', data);
-    });
-}
-
-ipcMain.on('load-main-settings', () => {
-    loadMainSettings();
-});
-function loadMainSettings() {
-    fs.readFile(settingsFilePath, 'utf8', (err, data) => {
-        if(err) {
-            console.log(err);
-        }
-        data = JSON.parse(data);
-        if(data.muteshortcut != settings.muteshortcut) {
-            registerMuteShortcut(data.muteshortcut);
-        }
-        settings = data;
-    });
-}
-
-//Set stream open to false on quit
 app.on('before-quit', () => {
+    let streamers = store.get('streamers');
     for(let stream in streamers) {
+        console.log(stream);
         streamers[stream].streamopen = false;
     }
-    saveStreamers(streamers);
+    store.set('streamers', streamers);
 });

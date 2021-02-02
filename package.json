@@ -9,28 +9,45 @@
   },
   "scripts": {
     "start": "electron .",
-    "pack": "electron-builder --dir",
-    "dist": "electron-builder"
+    "dist": "electron-builder build --win",
+    "roll": "rollup main.js --format cjs --file bundle.js",
+    "postinstall": "electron-builder install-app-deps"
   },
   "build": {
-    "appId": "com.streamluv.tracker",
+    "appId": "com.streamluv.app",
     "productName": "Stream Luv",
     "win": {
-      "target": "nsis",
-      "icon": "./buildResources/icon.png",
-      "publish": "github"
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        }
+      ],
+      "icon": "./buildResources/icon.ico"
+    },
+    "nsis": {
+      "installerIcon": "./buildResources/icon.ico",
+      "uninstallerIcon": "./buildResources/icon.ico",
+      "uninstallDisplayName": "Stream Luv",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
     }
   },
-  "author": "Gabe Alexander",
+  "author": "Klassy Kat",
   "license": "ISC",
   "devDependencies": {
-    "browser-sync": "^2.26.13",
-    "electron": "^11.2.0"
+    "browser-sync": "^2.26.14",
+    "electron": "^11.2.1",
+    "electron-builder": "^22.9.1"
   },
   "dependencies": {
     "auto-launch": "^5.0.5",
     "axios": "^0.21.1",
     "electron-context-menu": "^2.4.0",
+    "electron-store": "^7.0.0",
     "electron-unhandled": "^3.0.2",
     "electron-util": "^0.14.2",
     "electron-window-state": "^5.0.3",

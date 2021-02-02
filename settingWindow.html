@@ -3,7 +3,7 @@
 <link rel="stylesheet" href="./styles/scroll.css">
 <link rel="stylesheet" href="./styles/customRadioButton.css">
 
-<body onkeypress="submitEnter(event)" onkeyup="submitEnter(event)" onload="loadTwitchActions()">
+<body onkeypress="submitEnter(event)" onkeyup="submitEnter(event)" onload="loadTwitchActions(), setStates()">
     <div class="container">
         <header>
             Settings
@@ -198,15 +198,17 @@
     const {
         ipcRenderer
     } = require('electron');
+    const Store = require('electron-store');
+    const store = new Store();
 
     let streamInput = document.querySelector(".url-input");
-    let settings = {};
-    ipcRenderer.send('get-settings');
-    ipcRenderer.on('send-settings', (e, data) => {
-        settings = JSON.parse(data);
-        console.log(settings.startmuted);
-        setStates();
-    })
+    let settings = store.get('settings');
+    // ipcRenderer.send('get-settings');
+    // ipcRenderer.on('send-settings', (e, data) => {
+    //     settings = JSON.parse(data);
+    //     console.log(settings.startmuted);
+    //     setStates();
+    // })
 
 
     //Login
@@ -452,7 +454,8 @@
     }
 
     function saveSettings() {
-        ipcRenderer.send('save-settings', settings);
+        // ipcRenderer.send('save-settings', settings);
+        store.set('settings', settings);
     }
 
 

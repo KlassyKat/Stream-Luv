@@ -1,5 +1,5 @@
 <link rel="stylesheet" href="./styles/streamWrapper.css">
-<body>
+<body onload="setStates()">
     <nav class="control-bar">
         <strong id="window-title" class="tooltip" onclick="toggleAutoCollection()">Placeholder</strong>
         <span onclick="back()" class="history-back">
@@ -56,14 +56,12 @@
         ipcRenderer
     } = require('electron');
 
+    const Store = require('electron-store');
+    const store = new Store();
 
     let streamPage;
-    // let settings = JSON.parse(localStorage.getItem('settings'));
-    let settings = {};
-    ipcRenderer.on('send-view-settings', (e, data) => {
-        settings = JSON.parse(data);
-        setStates();
-    })
+
+    let settings = store.get('settings');
     let mute = false;
     let soundIcon = document.getElementById('sound-icon');
     let muteIcon = document.getElementById('mute-icon');

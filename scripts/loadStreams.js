@@ -70,7 +70,6 @@ let loadStreams =  {
             //Switches from live to offline
             if(streamers[name].live) {
                 streamers[name].live = false;
-                console.log('Prepare to turn off stream open')
                 setTimeout(setOffline.bind(null, name), 600000);
             } else if(streamers[name]) {
                 streamers[name].live = false;

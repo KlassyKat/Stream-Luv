@@ -19,13 +19,11 @@
     const {
         ipcRenderer
     } = require('electron');
+    const Store = require('electron-store');
+    const store = new Store();
 
     let streamInput = document.querySelector(".url-input");
-    let streams = {};
-    ipcRenderer.on('send-streamers', (e, data) => {
-        console.log('Add window send streamers')
-        streams = JSON.parse(data);
-    })
+    let streams = store.get('streamers') || {};
 
     function closeWindow() {
         ipcRenderer.send("close-stream-window");
@@ -47,7 +45,8 @@
                     streamopen: false,
                     autocollect: false
                 };
-                ipcRenderer.send('save-streamers', streams);
+                // ipcRenderer.send('save-streamers', streams);
+                store.set('streamers', streams);
                 ipcRenderer.send('add-stream');
                 closeWindow();
             } else {
