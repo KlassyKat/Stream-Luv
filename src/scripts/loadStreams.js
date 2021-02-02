@@ -1,11 +1,11 @@
 let loadStreams =  {
     initilize: async (streams) => {
         console.log('init')
-        for(stream in streams) {
+        for(let stream in streams) {
             stream = streams[stream];
             loadStreams.createStreamTile(tileWrapper, streamTile, stream);
         }
-        for(stream in streams) {
+        for(let stream in streams) {
             stream = streams[stream];
             await loadStreams.getStreamInfo(stream.name);
             await loadStreams.getLiveState(stream.name);
@@ -85,7 +85,7 @@ let loadStreams =  {
             //Save order on sort
             onEnd: () => {
                 let newStreamers = {};
-                for(el of container.children) {
+                for(let el of container.children) {
                     if(el.id != 'place-holder') {
                         newStreamers[el.id] = streamers[el.id];
                     }

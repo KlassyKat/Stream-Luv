@@ -203,7 +203,7 @@
 
     async function liveCheck() {
         console.log('Check Live Loop');
-        for(stream in streamers) {
+        for(let stream in streamers) {
             await loadStreams.getLiveState(stream);
         }
         apiCalls.startLiveCalls();

@@ -30,7 +30,7 @@
     }
 
     async function addStream() {
-        stream = streamInput.value.toLowerCase().replace(/ /g, '');
+        let stream = streamInput.value.toLowerCase().replace(/ /g, '');
         let streamCheck = await apiCalls.isStreamer(stream);
         if(!streamCheck) {
             errorMessage(streamInput.value + ' is not a stream');

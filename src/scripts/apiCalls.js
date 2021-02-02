@@ -56,7 +56,7 @@ let apiCalls = {
     startDataCalls: () => {
         Promise.all(apiCalls.dataRequestArray)
             .then((res) => {
-                for(info of res) {
+                for(let info of res) {
                     loadStreams.updateTile(info.data.data[0]);
                 }
             })
@@ -66,7 +66,7 @@ let apiCalls = {
     startLiveCalls: () => {
         Promise.all(apiCalls.liveRequestArray)
             .then((res) => {
-                for(info of res) {
+                for(let info of res) {
                     let index = info.config.url.lastIndexOf('=');
                     let name = info.config.url.slice(index+1);
                     let val = info.data.data[0] ? true : false;
