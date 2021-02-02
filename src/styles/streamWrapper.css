@@ -1,0 +1,89 @@
+@import url(https://fonts.googleapis.com/css?family=Montserrat:100,100italic,200,200italic,300,300italic,regular,italic,500,500italic,600,600italic,700,700italic,800,800italic,900,900italic);
+body {
+    padding: 0;
+    margin: 0;
+    height: 100vh;
+}
+.control-bar {
+    height: 32px;
+    font-size: 19px;
+    padding: 0 0 0 8px;
+    display: grid;
+    grid-template-columns: auto 1fr 32px 32px 10px 32px 32px 32px 32px;
+    background-color: #0d0d0d;
+    -webkit-app-region: drag;
+    align-items: center;
+}
+
+/* title */
+#window-title {
+    margin: 0;
+    font-family: 'Montserrat', sans-serif;
+    -webkit-user-select: none;
+    -webkit-app-region: no-drag;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+#window-title:hover {
+    text-decoration: underline;
+}
+
+.window-title_active {
+    color: hsl(192, 60%, 40%) !important;
+}
+
+.control-bar>span:hover {
+    background-color: #222;
+}
+
+.control-bar>span {
+    padding: 7px;
+    cursor: pointer;
+}
+
+.history-back {
+    grid-column: 3;
+    -webkit-app-region: no-drag;
+    stroke: #707070;
+    fill: #707070;
+}
+
+.history-forward {
+    grid-column: 4;
+    -webkit-app-region: no-drag;
+    stroke: #707070;
+    fill: #707070;
+}
+
+.mute-window {
+    grid-column: 6;
+    -webkit-app-region: no-drag;
+    stroke: #707070;
+    fill: #707070;
+}
+
+#mute-icon {
+    display: none;
+}
+
+.minimize-window {
+    grid-column: 7;
+    -webkit-app-region: no-drag;
+    fill: #707070;
+}
+
+.maximize-window {
+    grid-column: 8;
+    -webkit-app-region: no-drag;
+    fill: #707070;
+}
+
+.close-window {
+    grid-column: 9;
+    -webkit-app-region: no-drag;
+    stroke: #707070;
+    stroke-width: 5;
+}
+

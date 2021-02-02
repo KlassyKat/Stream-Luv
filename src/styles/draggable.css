@@ -1,0 +1,11 @@
+.draggable {
+    border: 1px solid black;
+}
+  
+  .draggable.dragging {
+    opacity: 0.5;
+  }
+
+  .ghost-class {
+    background-color: #063951 !important;
+  }

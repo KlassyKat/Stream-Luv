@@ -1,49 +1,58 @@
 {
   "name": "stream-luv",
+  "productName": "streamluv",
   "version": "1.0.0",
   "description": "Application for auto opening your favorite streams and giving support... automagically",
-  "main": "bundle.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/KlassyKat/Stream-Luv.git"
   },
+  "main": "src/main.js",
   "scripts": {
-    "start": "electron .",
-    "dist": "electron-builder build --win",
-    "roll": "rollup main.js --format cjs --file bundle.js",
-    "postinstall": "electron-builder install-app-deps"
+    "start": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "publish": "electron-forge publish",
+    "lint": "eslint src --color"
   },
-  "build": {
-    "appId": "com.streamluv.app",
-    "productName": "Stream Luv",
-    "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64",
-            "ia32"
-          ]
-        }
-      ],
-      "icon": "./buildResources/icon.ico"
-    },
-    "nsis": {
-      "installerIcon": "./buildResources/icon.ico",
-      "uninstallerIcon": "./buildResources/icon.ico",
-      "uninstallDisplayName": "Stream Luv",
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+  "keywords": [],
+  "author": "gabea",
+  "license": "MIT",
+  "config": {
+    "forge": {
+      "make_targets": {
+        "win32": [
+          "squirrel"
+        ],
+        "darwin": [
+          "zip"
+        ],
+        "linux": [
+          "deb",
+          "rpm"
+        ]
+      },
+      "electronPackagerConfig": {
+        "packageManager": "yarn"
+      },
+      "electronWinstallerConfig": {
+        "name": "streamluv"
+      },
+      "electronInstallerDebian": {},
+      "electronInstallerRedhat": {},
+      "github_repository": {
+        "owner": "KlassyKat",
+        "name": "Stream-Luv"
+      },
+      "windowsStoreConfig": {
+        "packageName": "",
+        "name": "streamluv"
+      }
     }
   },
-  "author": "Klassy Kat",
-  "license": "ISC",
-  "devDependencies": {
-    "browser-sync": "^2.26.14",
-    "electron": "^11.2.1",
-    "electron-builder": "^22.9.1"
-  },
   "dependencies": {
+    "electron-compile": "^6.4.4",
+    "electron-squirrel-startup": "^1.0.0",
     "auto-launch": "^5.0.5",
     "axios": "^0.21.1",
     "electron-context-menu": "^2.4.0",
@@ -55,5 +64,17 @@
     "puppeteer-core": "^3.3.0",
     "puppeteer-in-electron": "^3.0.3",
     "sortablejs": "^1.13.0"
+  },
+  "devDependencies": {
+    "babel-plugin-transform-async-to-generator": "^6.24.1",
+    "babel-preset-env": "^1.7.0",
+    "babel-preset-react": "^6.24.1",
+    "electron-forge": "^5.2.4",
+    "electron-prebuilt-compile": "8.2.0",
+    "eslint": "^3",
+    "eslint-config-airbnb": "^15",
+    "eslint-plugin-import": "^2",
+    "eslint-plugin-jsx-a11y": "^5",
+    "eslint-plugin-react": "^7"
   }
 }

@@ -17,6 +17,10 @@ const contextMenu = require('electron-context-menu');
 const unhandled = require('electron-unhandled');
 const {openNewGitHubIssue, debugInfo} = require('electron-util');
 
+if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
+    app.quit();
+}
+
 unhandled({
 	reportButton: error => {
 		openNewGitHubIssue({
@@ -28,6 +32,8 @@ unhandled({
 });
 
 
+app.allowRendererProcessReuse = true;
+
 let mainWindow;
 let addStreamWindow;
 let settingWindow;
@@ -35,7 +41,7 @@ let supportWindow;
 let infoWindow;
 let mainWindowState;
 let streamWindowState;
-const iconPath = `${__dirname}/buildResources/icon.ico`;
+const iconPath = `${__dirname}/../buildResources/icon.ico`;
 let tray = null;
 let pauseShortcut;
 
@@ -61,16 +67,16 @@ app.on('ready', () => {
         y: mainWindowState.y,
         width: 450,
         height: 570,
-        resizeable: false,
+        resizable: false,
         frame: false,
         backgroundColor: '#212121',
-        icon: './buildResources/icon.ico'
+        icon: '../buildResources/icon.ico'
     });
 
     //Debugging
     // mainWindow.webContents.toggleDevTools();
 
-    mainWindow.setResizable(false); //Workaround
+    // mainWindow.setResizable(false); //Workaround
     mainWindow.loadFile(`${__dirname}/main.html`);
 
     //Listen to window state
@@ -258,12 +264,12 @@ ipcMain.on('open-setting-window', () => {
         y: mainWindowState.y + 50,
         width: 500,
         height: 600,
+        resizable: false,
         backgroundColor: "#1c1c1c",
         frame: false,
         parent: mainWindow,
         show: false
     });
-    settingWindow.setResizable(false); //Workaround
     settingWindow.loadFile(`${__dirname}/settingWindow.html`);
     settingWindow.on('ready-to-show', () => {
         settingWindow.show();
@@ -418,7 +424,8 @@ async function openWindow(stream) {
         y: 32
     };
     view.setBounds({
-        ...viewAnchor,
+        x: viewAnchor.x,
+        y: viewAnchor.y,
         width: streamWindowState.width,
         height: streamWindowState.height - 32
     });
@@ -489,7 +496,8 @@ async function openWindow(stream) {
         newBounds.width = newBounds.width - 16;
         newBounds.height = newBounds.height - 16;
         view.setBounds({
-            ...viewAnchor,
+            x: viewAnchor.x,
+            y: viewAnchor.y,
             width: newBounds.width,
             height: newBounds.height - viewAnchor.y
         })
@@ -497,7 +505,8 @@ async function openWindow(stream) {
     window.on('resize', () => {
         let newBounds = window.getBounds();
         view.setBounds({
-            ...viewAnchor,
+            x: viewAnchor.x,
+            y: viewAnchor.y,
             width: newBounds.width,
             height: newBounds.height - viewAnchor.y
         })
@@ -512,6 +521,7 @@ async function openWindow(stream) {
     })
 
     window.on('close', e => {
+        e.preventDefault();
         window.webContents.send('proper-close');
     })
 
@@ -534,7 +544,7 @@ async function openWindow(stream) {
 
         
     //Debugging
-    window.webContents.toggleDevTools();
+    // window.webContents.toggleDevTools();
 }
 
 //SECTION
@@ -554,13 +564,10 @@ ipcMain.on('minimize-stream-shell', (e, data) => {
 ipcMain.on('maximize-stream-shell', (e, data) => {
     collectionWindows[data].isMaximized() ? collectionWindows[data].unmaximize() : collectionWindows[data].maximize();
 })
-ipcMain.on('close-stream-shell', async(e, data) => {
-    await collectionWindows[data].close();
-});
+
 ipcMain.on('close-stream-alt', async(e, data) => {
     console.log('Close: ' + data);
     //I guess this works
-    // await collectionViews[data].webContents.forcefullyCrashRenderer();
     await collectionWindows[data].setBrowserView(null);
     await collectionViews[data].webContents.destroy();
     await collectionWindows[data].destroy();
@@ -573,11 +580,6 @@ ipcMain.on('close-stream-alt', async(e, data) => {
     mainWindow.webContents.send('resume-open', data);
     console.log('What' + Object.keys(collectionViews));
 });
-
-// ipcMain.on('set-frames', (e, data) => {
-//     console.log('Frame rate down')
-//     collectionWindows[data].webContents.setFrameRate(1);
-// })
 
 async function autoCollect() {
     console.log('Auto Collect: ' + collectionKeys);
@@ -650,14 +652,13 @@ ipcMain.on('twitch-login', async () => {
 
     await loginWindow.loadFile(`${__dirname}/loginWrapper.html`);
 
+    //Called from Login Page
     ipcMain.on('twitch-login-close', async () => {
-        try {
+        if(loginWindow) {
             await loginWindow.close();
             loginWindow = null;
             // await loginView.destroy();
             loginView = null;
-        } catch (error) {
-            return;
         }
     })
 })
