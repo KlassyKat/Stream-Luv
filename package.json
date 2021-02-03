@@ -1,8 +1,8 @@
 {
   "name": "streamluv",
-  "productName": "streamluv",
+  "productName": "Stream Luv",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "Desktop application to help support your favorite streamers.",
   "main": "src/index.js",
   "scripts": {
     "start": "electron-forge start",
@@ -13,8 +13,8 @@
   },
   "keywords": [],
   "author": {
-    "name": "GabeAlexander",
-    "email": "43545418+GabeAlexander@users.noreply.github.com"
+    "name": "Klassy Kat",
+    "email": "gabealexander01@gmail.com"
   },
   "license": "MIT",
   "config": {
@@ -24,7 +24,9 @@
         {
           "name": "@electron-forge/maker-squirrel",
           "config": {
-            "name": "streamluv"
+            "name": "streamluv",
+            "setupIcon": "./buildResources/icon.ico",
+            "loadingGif": "./buildResources/loadingGif.gif"
           }
         },
         {

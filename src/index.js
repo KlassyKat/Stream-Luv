@@ -160,7 +160,6 @@ ipcMain.on('new-mute-shortcut', (e, data) => {
 let oldMuteShortcut;
 
 function registerMuteShortcut(shortcut) {
-  console.log('Register mute shortcut')
   if (!shortcut) {
     shortcut = ['Ctrl', '\''];
   }
@@ -608,7 +607,7 @@ ipcMain.on('close-stream-alt', async (e, data) => {
   }
   removeFromFocusList(data);
   mainWindow.webContents.send('resume-open', data);
-  console.log('What' + Object.keys(collectionViews));
+  console.log('Windows: ' + Object.keys(collectionViews));
 });
 
 ipcMain.on('set-frames', (e, data) => {
