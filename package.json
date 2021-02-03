@@ -21,35 +21,50 @@
   "license": "MIT",
   "config": {
     "forge": {
-      "make_targets": {
-        "win32": [
-          "squirrel"
-        ],
-        "darwin": [
-          "zip"
-        ],
-        "linux": [
-          "deb",
-          "rpm"
-        ]
-      },
-      "electronPackagerConfig": {
-        "packageManager": "yarn",
+      "packagerConfig": {
         "icon": "./buildResources/icon.ico"
       },
-      "electronWinstallerConfig": {
-        "name": "streamluv"
-      },
-      "electronInstallerDebian": {},
-      "electronInstallerRedhat": {},
-      "github_repository": {
-        "owner": "KlassyKat",
-        "name": "Stream-Luv"
-      },
-      "windowsStoreConfig": {
-        "packageName": "",
-        "name": "streamluv"
-      }
+      "makers": [
+        {
+          "name": "@electron-forge/maker-deb",
+          "config": {
+            "name": "stream_luv"
+          },
+          "platforms": null
+        },
+        {
+          "name": "@electron-forge/maker-rpm",
+          "platforms": null,
+          "config": {}
+        },
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "streamluv"
+          },
+          "platforms": null
+        },
+        {
+          "name": "@electron-forge/maker-appx",
+          "config": {
+            "packageName": "",
+            "name": "streamluv"
+          },
+          "platforms": null
+        }
+      ],
+      "publishers": [
+        {
+          "config": {
+            "repository": {
+              "name": "Stream-Luv",
+              "owner": "KlassyKat"
+            }
+          },
+          "name": "@electron-forge/publisher-github",
+          "platforms": null
+        }
+      ]
     }
   },
   "build": {
@@ -76,11 +91,10 @@
     }
   },
   "dependencies": {
-    "electron-compile": "^6.4.4",
-    "electron-squirrel-startup": "^1.0.0",
     "auto-launch": "^5.0.5",
     "axios": "^0.21.1",
     "electron-context-menu": "^2.4.0",
+    "electron-squirrel-startup": "^1.0.0",
     "electron-store": "^7.0.0",
     "electron-unhandled": "^3.0.2",
     "electron-util": "^0.14.2",
@@ -91,16 +105,12 @@
     "sortablejs": "^1.13.0"
   },
   "devDependencies": {
-    "babel-plugin-transform-async-to-generator": "^6.24.1",
-    "babel-preset-env": "^1.7.0",
-    "babel-preset-react": "^6.24.1",
-    "electron-builder": "^22.9.1",
-    "electron-forge": "^5.2.4",
-    "electron-prebuilt-compile": "8.2.0",
-    "eslint": "^3",
-    "eslint-config-airbnb": "^15",
-    "eslint-plugin-import": "^2",
-    "eslint-plugin-jsx-a11y": "^5",
-    "eslint-plugin-react": "^7"
+    "@electron-forge/cli": "^6.0.0-beta.54",
+    "@electron-forge/maker-appx": "^6.0.0-beta.54",
+    "@electron-forge/maker-deb": "^6.0.0-beta.54",
+    "@electron-forge/maker-rpm": "^6.0.0-beta.54",
+    "@electron-forge/maker-squirrel": "^6.0.0-beta.54",
+    "@electron-forge/publisher-github": "^6.0.0-beta.54",
+    "electron": "^11.2.2"
   }
 }
