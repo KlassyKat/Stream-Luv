@@ -1,116 +1,68 @@
 {
-  "name": "stream-luv",
+  "name": "streamluv",
   "productName": "streamluv",
   "version": "1.0.0",
-  "description": "Application for auto opening your favorite streams and giving support... automagically",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/KlassyKat/Stream-Luv.git"
-  },
-  "main": "src/main.js",
+  "description": "My Electron application description",
+  "main": "src/index.js",
   "scripts": {
     "start": "electron-forge start",
-    "dist": "electron-builder",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
-    "lint": "eslint src --color"
+    "lint": "echo \"No linting configured\""
   },
   "keywords": [],
-  "author": "gabea",
+  "author": {
+    "name": "GabeAlexander",
+    "email": "43545418+GabeAlexander@users.noreply.github.com"
+  },
   "license": "MIT",
   "config": {
     "forge": {
-      "packagerConfig": {
-        "icon": "./buildResources/icon.ico"
-      },
+      "packagerConfig": {},
       "makers": [
-        {
-          "name": "@electron-forge/maker-deb",
-          "config": {
-            "name": "stream_luv"
-          },
-          "platforms": null
-        },
-        {
-          "name": "@electron-forge/maker-rpm",
-          "platforms": null,
-          "config": {}
-        },
         {
           "name": "@electron-forge/maker-squirrel",
           "config": {
             "name": "streamluv"
-          },
-          "platforms": null
+          }
         },
         {
-          "name": "@electron-forge/maker-appx",
-          "config": {
-            "packageName": "",
-            "name": "streamluv"
-          },
-          "platforms": null
-        }
-      ],
-      "publishers": [
+          "name": "@electron-forge/maker-zip",
+          "platforms": [
+            "darwin"
+          ]
+        },
         {
-          "config": {
-            "repository": {
-              "name": "Stream-Luv",
-              "owner": "KlassyKat"
-            }
-          },
-          "name": "@electron-forge/publisher-github",
-          "platforms": null
+          "name": "@electron-forge/maker-deb",
+          "config": {}
+        },
+        {
+          "name": "@electron-forge/maker-rpm",
+          "config": {}
         }
       ]
     }
   },
-  "build": {
-    "appId": "com.streamluv.app",
-    "productName": "Stream Luv",
-    "win": {
-      "target": [
-        {
-          "target": "squirrel-windows",
-          "arch": [
-            "x64",
-            "ia32"
-          ]
-        }
-      ],
-      "icon": "./buildResources/icon.ico"
-    },
-    "nsis": {
-      "installerIcon": "./buildResources/icon.ico",
-      "uninstallerIcon": "./buildResources/icon.ico",
-      "uninstallDisplayName": "Stream Luv",
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true
-    }
-  },
   "dependencies": {
+    "electron-squirrel-startup": "^1.0.0",
     "auto-launch": "^5.0.5",
     "axios": "^0.21.1",
     "electron-context-menu": "^2.4.0",
-    "electron-squirrel-startup": "^1.0.0",
     "electron-store": "^7.0.0",
     "electron-unhandled": "^3.0.2",
     "electron-util": "^0.14.2",
     "electron-window-state": "^5.0.3",
-    "node-localstorage": "^2.1.6",
     "puppeteer-core": "^3.3.0",
     "puppeteer-in-electron": "^3.0.3",
     "sortablejs": "^1.13.0"
   },
   "devDependencies": {
     "@electron-forge/cli": "^6.0.0-beta.54",
-    "@electron-forge/maker-appx": "^6.0.0-beta.54",
     "@electron-forge/maker-deb": "^6.0.0-beta.54",
     "@electron-forge/maker-rpm": "^6.0.0-beta.54",
     "@electron-forge/maker-squirrel": "^6.0.0-beta.54",
-    "@electron-forge/publisher-github": "^6.0.0-beta.54",
-    "electron": "^11.2.2"
+    "@electron-forge/maker-zip": "^6.0.0-beta.54",
+    "electron": "11.2.2"
   }
 }
