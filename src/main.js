@@ -542,6 +542,7 @@ async function openWindow(stream) {
         autoFormat(stream);
     })
 
+
         
     //Debugging
     // window.webContents.toggleDevTools();
@@ -580,6 +581,12 @@ ipcMain.on('close-stream-alt', async(e, data) => {
     mainWindow.webContents.send('resume-open', data);
     console.log('What' + Object.keys(collectionViews));
 });
+
+ipcMain.on('set-frames', (e, data) => {
+    // collectionViews[data].webContents.frameRate = 1;
+    // console.log(collectionViews[data].webContents.getFrameRate());
+    console.log('Limit');
+})
 
 async function autoCollect() {
     console.log('Auto Collect: ' + collectionKeys);
