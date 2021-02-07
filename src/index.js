@@ -72,7 +72,7 @@ const createWindow = () => {
     resizable: false,
     frame: false,
     backgroundColor: '#212121',
-    icon: '../buildResources/icon.ico'
+    icon: iconPath
   });
 
   //Debugging
@@ -213,11 +213,20 @@ function removeFromFocusList(payload) {
 
 //Set theater and chat
 async function autoFormat(payload) {
-  let page = await pie.getPage(browser, collectionViews[payload]);
-  if (store.get('settings.autotheater')) {
-    autoTheaterFn();
+  let page = null;
+  try {
+    page = await pie.getPage(browser, collectionViews[payload]);
+  } catch(err) {
+    console.log(err);
   }
-  autoExpandChat();
+  
+  if(page) {
+    if (store.get('settings.autotheater')) {
+      autoTheaterFn();
+    }
+    autoExpandChat();
+  }
+  
   //Auto Theater
   async function autoTheaterFn() {
     let player = await page.$(".video-player__container--theatre[data-test-selector='video-player__video-container']");
@@ -606,8 +615,12 @@ ipcMain.on('close-stream-alt', async (e, data) => {
     collectionKeys.splice(collectionKeys.indexOf(data), 1);
   }
   removeFromFocusList(data);
-  mainWindow.webContents.send('resume-open', data);
-  console.log('Windows: ' + Object.keys(collectionViews));
+  try {
+    mainWindow.webContents.send('resume-open', data);
+    console.log('Windows: ' + Object.keys(collectionViews));
+  } catch(err) {
+    console.log(err)
+  }
 });
 
 ipcMain.on('set-frames', (e, data) => {
@@ -619,7 +632,12 @@ ipcMain.on('set-frames', (e, data) => {
 async function autoCollect() {
   console.log('Auto Collect: ' + collectionKeys);
   for (let i of collectionKeys) {
-    let page = await pie.getPage(browser, collectionViews[i]);
+    let page = null;
+    try {
+      page = await pie.getPage(browser, collectionViews[i]);
+    } catch(err) {
+      console.log(err)
+    }
     if (page) {
       console.log('Page: ' + i);
       let claimPoints = await page.$('.claimable-bonus__icon');
@@ -855,3 +873,8 @@ app.on('before-quit', () => {
   }
   store.set('streamers', streamers);
 })
+
+// Unhandled Promise Rejection
+// Error: Unable to find puppeteer Page from BrowserWindow. Please report this.
+//     at Object.exports.getPage (C:/Users/gabea/AppData/Local/streamluv/app-1.0.0/resources/app/node_modules/puppeteer-in-electron/bin/index.js:111:15)
+//     at async Timeout.autoCollect [as _onTimeout] (C:/Users/gabea/AppData/Local/streamluv/app-1.0.0/resources/app/src/index.js:622:16)
