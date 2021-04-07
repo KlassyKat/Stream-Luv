@@ -1,0 +1,24 @@
+{
+   "browser_action": {
+      "default_popup": "settings.html"
+   },
+   "content_scripts": [ {
+      "all_frames": true,
+      "exclude_matches": [ "*://*.twitch.tv/*.html", "*://*.twitch.tv/*.html?*", "*://*.twitch.tv/*.htm", "*://*.twitch.tv/*.htm?*" ],
+      "js": [ "run.js" ],
+      "matches": [ "*://*.twitch.tv/*" ]
+   } ],
+   "description": "BetterTTV enhances Twitch with new features, emotes, and more.",
+   "homepage_url": "https://betterttv.com",
+   "icons": {
+      "128": "icon.png"
+   },
+   "key": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDGodR8UOS1OhLctEpt4tzWBax9vHSCjff/Ir2Y32FzNq5CyWdKpC7Ak9r+rK8jKBV6VZt+4D+pOPctfof3pO2r3DD2/YDSRhDxu0znYtioLihfTOvS+AlB1pBqLrK0yNMcAvs9Eu/yIgrD/8UoSI/WnVEI/Z5ohv3u0Gha6QSS7wIDAQAB",
+   "manifest_version": 2,
+   "name": "BetterTTV",
+   "permissions": [ "*://*.twitch.tv/*" ],
+   "short_name": "BTTV",
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "7.2.92",
+   "web_accessible_resources": [ "betterttv.js", "betterttv.css" ]
+}

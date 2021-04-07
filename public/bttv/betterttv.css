@@ -1,0 +1,966 @@
+.bttv-hide-channel-points div[data-test-selector="community-points-summary"] {
+    display: none !important;
+  }
+
+.bttv-chat-badge {
+  width: 18px;
+  height: 18px;
+}
+
+.chat-badge {
+  border-radius: 3px;
+}
+
+.bttv-emoji img {
+    height: auto;
+    width: 20px;
+    margin-bottom: -4px;
+    display: inline-block;
+}
+
+#bttv-custom-timeout-contain {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  width: 83px;
+  height: 224px;
+  overflow: hidden;
+
+  background: rgba(90,90,90,0.4);
+
+  z-index: 99999;
+}
+
+  #bttv-custom-timeout-contain .text, #bttv-custom-timeout-contain .cursor {
+    position: absolute;
+    left: 0px;
+    top: 100px;
+    width: 80px;
+    height: 1px;
+    background: #f00;
+  }
+
+  #bttv-custom-timeout-contain .text {
+    top: 85px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    background: rgba(0,0,0,0.6);
+    cursor: default;
+    display: none;
+    color: #d3d3d3;
+  }
+
+#bttv-custom-timeout-contain:hover .text {
+    display: block;
+  }
+
+#bttv-custom-timeout-contain:hover .cursor {
+    background: #0f0;
+  }
+
+.bttv-chat-line-deleted {
+  opacity: 0.5;
+}
+
+.bttv-chat-direction-reversed .chat-list .chat-scrollable-area__message-container[role="log"],.bttv-chat-direction-reversed .chat-list--default .chat-scrollable-area__message-container[role="log"],.bttv-chat-direction-reversed .chat-list--other .chat-scrollable-area__message-container[role="log"] {
+        display: flex;
+        flex-direction: column-reverse;
+    }
+
+#bttv-poll-contain {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  width: 100%;
+  height: 50px;
+
+  background: #222222;
+  color: #e3e3e3;
+  box-shadow: 0px 8px 8px -5px #000000;
+
+  overflow: hidden;
+  display: none;
+  z-index: 99999;
+}
+
+  #bttv-poll-contain .title {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+
+    height: 50px;
+    line-height: 50px;
+    padding: 0px 24px;
+
+    font-size: 16px;
+
+    cursor: pointer;
+  }
+
+  #bttv-poll-contain .close {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    width: 50px;
+    height: 50px;
+    padding: 17px;
+
+    background: #800;
+
+    cursor: pointer;
+
+    z-index: 999999;
+  }
+
+  #bttv-poll-contain .close svg path {
+      fill: #fff;
+    }
+
+  #bttv-poll-contain .frame {
+    position: absolute;
+    top: 50px;
+    left: 0px;
+
+    width: 100%;
+    height: 400px;
+
+    border: none;
+
+    display: none;
+  }
+
+#bttv-pin-container {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  width: 100%;
+
+  box-shadow: 0px 8px 8px -5px #000;
+
+  z-index: 99998;
+}
+
+#bttv-pinned-highlight {
+  padding: 2px 10px;
+
+  font-weight: bold;
+  font-size: 0.8572em;
+  color: #fff;
+
+  background-color: rgba(255, 0, 0, 0.5);
+}
+
+#bttv-pinned-highlight span {
+    padding-right: 5px;
+  }
+
+#bttv-pinned-highlight .message {
+    word-break: break-word;
+  }
+
+#bttv-pinned-highlight .close {
+    cursor: pointer;
+    fill: #fff;
+  }
+
+.chat-line__message.bttv-highlighted, .vod-message.bttv-highlighted {
+  background-color: rgba(255, 0, 0, 0.3) !important;
+}
+
+.bttv-swap-chat .right-column {
+        order: 1;
+    }
+    .bttv-swap-chat .twilight-main {
+        order: 2;
+    }
+    .bttv-swap-chat #sideNav, .bttv-swap-chat .side-nav {
+        order: 3;
+    }
+    .bttv-swap-chat #sideNav .collapse-toggle, .bttv-swap-chat .side-nav .collapse-toggle {
+            transform: rotate(180deg);
+        }
+    /* Restore channel content and player size */
+    .bttv-swap-chat .channel-root__right-column.channel-root__right-column--expanded:not(.channel-root__right-column--home) {
+        position: relative !important;
+        transform: none !important;
+    }
+    .bttv-swap-chat .channel-root__right-column.channel-root__right-column--home {
+        display: none !important;
+    }
+    .bttv-swap-chat .channel-root__player--with-chat {
+        width: 100% !important;
+    }
+    .bttv-swap-chat .channel-info-content {
+        width: 100% !important;
+    }
+    /* Header overlap with collapseable column */
+    .bttv-swap-chat .channel-header .tw-sm-pd-r-4 .channel-header__left {
+        margin-left: 3.5rem;
+    }
+    /* Toggle Visibility Arrows */
+    .bttv-swap-chat .side-nav__toggle-visibility {
+        right: unset;
+        left: -2.5rem;
+        transform: rotate(-180deg);
+    }
+    .bttv-swap-chat .side-nav--collapsed .side-nav__toggle-visibility {
+        transform: rotate(180deg);
+    }
+    .bttv-swap-chat .right-column__toggle-visibility {
+        left: 1rem;
+        transform: rotate(180deg);
+    }
+    .bttv-swap-chat .right-column__toggle-visibility .tw-tooltip {
+            display: none !important;
+        }
+    .bttv-swap-chat .right-column--collapsed .right-column__toggle-visibility {
+        transform: rotate(-180deg);
+    }
+    /* Friend Hover Balloon */
+    .bttv-swap-chat .user-card-layer__balloon {
+        left: calc(100% - 65rem) !important;
+    }
+    .bttv-swap-chat .user-card-layer__balloon .tw-balloon__tail {
+            margin: 0 -3px 0 0;
+            left: unset;
+            right: 0;
+        }
+    /* Theatre Mode */
+    .bttv-swap-chat .persistent-player--theatre, .bttv-swap-chat .channel-page__video-player--theatre-mode {
+        left: auto !important;
+        right: 0;
+    }
+    .bttv-swap-chat .channel-root--watch-chat + .persistent-player {
+        width: 100%;
+    }
+    .bttv-swap-chat .right-column--theatre {
+        right: unset !important;
+    }
+    .bttv-swap-chat .right-column__toggle-visibility {
+        z-index: 1000 !important;
+    }
+    /* Subscriber balloons on channel page */
+    .bttv-swap-chat .chat-input div.tw-balloon[data-a-target="sub-balloon"] {
+        left: auto !important;
+        right: unset !important;
+    }
+    /* flips direction on squad streams */
+    .bttv-swap-chat .multi-stream-player-layout {
+        flex-direction: row-reverse;
+    }
+    /* chat settings */
+    .bttv-swap-chat div[data-a-target="chat-settings-balloon"] {
+        margin-right: -25.3rem !important;
+    }
+
+.viewer-card__actions .tw-c-background-alt-2 .viewer-card-drag-cancel .tw-pd-r-1, .viewer-card__actions .tw-c-background-alt-2 .viewer-card-drag-cancel .tw-pd-l-1 {
+        padding-right: 0px !important;
+        padding-left: 0px !important;
+    }
+    .viewer-card__actions .tw-c-background-alt-2 .viewer-card-drag-cancel .tw-mg-r-1 {
+        margin-right: 0px !important;
+    }
+
+.viewer-card__display-name h4 {
+    display: inline-block;
+}
+
+.bttv-moderator-card-actions > div {
+    position: relative;
+}
+
+.bttv-moderator-card-action {
+    font-size: 1rem;
+}
+
+.bttv-moderator-card-action .tw-button__text {
+        height: 28px;
+        padding-right: 6px;
+        padding-left: 6px;
+    }
+
+.bttv-moderator-card-user-stats {
+    color: white;
+    padding-bottom: 10px;
+    background-color: rgba(0,0,0,0.6);
+}
+
+.bttv-moderator-card-nickname-change-button {
+    margin-top: -5px;
+}
+
+.bttv-moderator-card-messages {
+    border-top: 1px solid #222;
+}
+
+.bttv-moderator-card-messages .message-list {
+        overflow-y: auto;
+        max-height: 100px;
+        width: 100%;
+        display: none
+    }
+
+.bttv-moderator-card-messages .message-list::-webkit-scrollbar {
+            width: 5px;
+        }
+
+.bttv-moderator-card-messages .message-list::-webkit-scrollbar-thumb {
+            border-radius: 10px;
+            box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+            background-color: #777;
+        }
+
+.bttv-moderator-card-messages .message-list .chat-line__mod-icons {
+            display: none !important;
+        }
+
+/* Prevent Message Delete Link */
+
+.bttv-moderator-card-messages .message-list .chat-line__message--deleted > a {
+            pointer-events: none;
+        }
+
+.bttv-moderator-card-messages .label {
+        padding-top: 5px;
+        padding-left: 8px;
+        padding-bottom: 5px;
+        padding-right: 5px;
+        position: relative;
+        font-size: 12px;
+        font-weight: bold;
+        cursor: pointer;
+        -webkit-user-select: none;
+           -moz-user-select: none;
+            -ms-user-select: none;
+                user-select: none;
+    }
+
+.bttv-moderator-card-messages .label .triangle {
+            width: 0;
+            height: 0;
+            opacity: 0.5;
+            position: absolute;
+            right: 8px;
+            top: 8px;
+            border-top: 7px solid transparent;
+            border-bottom: 7px solid transparent;
+            border-left: 7px solid #6441a4;
+            transition: all 50ms ease-in
+        }
+
+.bttv-moderator-card-messages .label .triangle.open {
+                transform: rotate(90deg);
+            }
+
+.tw-root--theme-dark .bttv-moderator-card-messages .triangle {
+        border-left-color: white;
+    }
+
+.bttv-hide-chat-replies .chat-line__reply-icon {
+  display: none !important;
+}
+
+.chat-settings {
+  overflow-y: scroll;
+  max-height: calc(100vh - 200px);
+}
+
+  .chat-settings button[data-a-target="clear-chat-button"] {
+    display: none;
+  }
+
+.bttv-chat-settings button {
+  color: inherit
+}
+
+.bttv-chat-settings button:hover {
+    color: inherit;
+    text-decoration: none;
+    background-color: var(--color-background-interactable-hover);
+  }
+
+.bttv-hide-tab-completion-tooltip .tw-balloon[data-a-target="autocomplete-balloon"] {
+    display: none !important;
+  }
+
+.clip-chat-badge__img {
+  border-radius: 3px;
+}
+
+.bttv-hide-conversations button[data-a-target="whisper-box-button"] {
+    display: none !important;
+  }
+
+.bttv-disable-channel-points-message-highlights div[data-test-selector="user-notice-line"] .chat-line__message-body--highlighted {
+  background: transparent none repeat 0 0 / auto auto padding-box border-box scroll !important;
+  background: initial !important;
+  border: medium none currentColor !important;
+  border: initial !important;
+}
+
+.chat-scrollable-area__message-container.bttv-disable-name-colors .chat-line__message, .chat-scrollable-area__message-container.bttv-disable-name-colors .chat-author__display-name, .chat-scrollable-area__message-container.bttv-disable-name-colors .chat-author__intl-login {
+    color: inherit !important;
+  }
+
+/* Prevent stacking of IceCube, SoSnowy */
+.bttv-emo-5849c9a4f52be01a7ee5f79d + .bttv-emo-5849c9a4f52be01a7ee5f79d,
+.bttv-emo-567b5b520e984428652809b6 + .bttv-emo-567b5b520e984428652809b6 {
+  display: none;
+}
+
+/* Ice Cube */
+div[data-test-selector="emote-button"] + span[data-a-target="chat-message-text"] span .bttv-emo-5849c9a4f52be01a7ee5f79d,
+div.bttv-emote + .bttv-emo-5849c9a4f52be01a7ee5f79d {
+  margin-left: -33px;
+}
+
+/* SoSnowy */
+div[data-test-selector="emote-button"] + span[data-a-target="chat-message-text"] span .bttv-emo-567b5b520e984428652809b6,
+div.bttv-emote + .bttv-emo-567b5b520e984428652809b6 {
+  margin-left: -32px;
+}
+
+/* SantaHat */
+div[data-test-selector="emote-button"] + span[data-a-target="chat-message-text"] span .bttv-emo-58487cc6f52be01a7ee5f205,
+div.bttv-emote + .bttv-emo-58487cc6f52be01a7ee5f205 {
+  margin-left: -34px;
+  margin-top: -18px;
+}
+
+/* TopHat, CandyCane, ReinDeer */
+div[data-test-selector="emote-button"] + span[data-a-target="chat-message-text"] span .bttv-emo-5849c9c8f52be01a7ee5f79e,
+div.bttv-emote + .bttv-emo-5849c9c8f52be01a7ee5f79e,
+div[data-test-selector="emote-button"] + span[data-a-target="chat-message-text"] span .bttv-emo-567b5c080e984428652809ba,
+div.bttv-emote + .bttv-emo-567b5c080e984428652809ba,
+div[data-test-selector="emote-button"] + span[data-a-target="chat-message-text"] span .bttv-emo-567b5dc00e984428652809bd,
+div.bttv-emote + .bttv-emo-567b5dc00e984428652809bd {
+  margin-left: -31px;
+  margin-top: -18px;
+}
+
+/* cvHazmat, cvMask */
+div[data-test-selector="emote-button"] + span[data-a-target="chat-message-text"] span .bttv-emo-5e76d338d6581c3724c0f0b2 img,
+div.bttv-emote + .bttv-emo-5e76d338d6581c3724c0f0b2 img,
+div[data-test-selector="emote-button"] + span[data-a-target="chat-message-text"] span .bttv-emo-5e76d399d6581c3724c0f0b8 img,
+div.bttv-emote + .bttv-emo-5e76d399d6581c3724c0f0b8 img {
+  height: 34px;
+  width: 34px;
+}
+
+div[data-test-selector="emote-button"] + span[data-a-target="chat-message-text"] span .bttv-emo-5e76d338d6581c3724c0f0b2,
+div.bttv-emote + .bttv-emo-5e76d338d6581c3724c0f0b2,
+div[data-test-selector="emote-button"] + span[data-a-target="chat-message-text"] span .bttv-emo-5e76d399d6581c3724c0f0b8,
+div.bttv-emote + .bttv-emo-5e76d399d6581c3724c0f0b8 {
+  margin-left: -34px;
+}
+
+.bttv-emote-tooltip-wrapper {
+  display: inline-block;
+  position: relative
+}
+
+.bttv-emote-tooltip-wrapper:hover .bttv-emote-tooltip {
+    display: block;
+  }
+
+.bttv-emote-tooltip {
+  padding: 3px 6px;
+  border-radius: 2px;
+  background: #0e0c13;
+  color: #fff;
+  display: none;
+  position: absolute;
+  left: 0;
+  padding: .5rem;
+  font-size: 1.2rem;
+  line-height: 1;
+  text-align: left;
+  white-space: nowrap;
+  z-index: 2000;
+  pointer-events: none;
+  text-align: center;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none
+}
+
+.bttv-emote-tooltip.bttv-emote-tooltip--up {
+    top: auto;
+    bottom: 100%;
+    left: 0;
+    margin-bottom: 6px
+  }
+
+.bttv-emote-tooltip.bttv-emote-tooltip--up.bttv-emote-tooltip--align-center {
+      left: 50%;
+      transform: translateX(-50%)
+    }
+
+.bttv-emote-tooltip.bttv-emote-tooltip--up.bttv-emote-tooltip--align-center:after {
+        left: 50%;
+        margin-left: -3px;
+      }
+
+.bttv-emote-tooltip.bttv-emote-tooltip--up:after {
+      border-radius: 0 0 2px;
+      top: 100%;
+      left: 6px;
+      margin-top: -3px;
+    }
+
+.bttv-emote-tooltip:before {
+    top: -6px;
+    left: -6px;
+    width: calc(100% + 12px);
+    height: calc(100% + 12px);
+    z-index: -1;
+  }
+
+.bttv-emote-tooltip:after {
+    background: #0e0c13;
+    width: 6px;
+    height: 6px;
+    transform: rotate(45deg);
+    z-index: -1;
+  }
+
+.bttv-emote-tooltip:after, .bttv-emote-tooltip:before {
+    position: absolute;
+    content: "";
+  }
+
+.tw-root--theme-dark .bttv-emote-tooltip {
+    padding: 3px 6px;
+    border-radius: 2px;
+    background: #fff;
+    color: #0e0c13
+  }
+
+.tw-root--theme-dark .bttv-emote-tooltip:after {
+      background: #fff;
+    }
+
+.pinned-cheer .pinned-cheer__bounding-box:before {
+  content: "×";
+  position: absolute;
+  color: #777;
+  cursor: pointer;
+  top: 0px;
+  right: 5px;
+  width: 8px;
+  height: 15px;
+}
+
+.bttv-hide-bits .pinned-cheer,
+  .bttv-hide-bits .pinned-cheer-v2,
+  .bttv-hide-bits button[data-a-target="bits-button"],
+  .bttv-hide-bits div[data-test-selector="channel-leaderboard-container"],
+  .bttv-hide-bits img.chat-line__message--emote[src^="https://d3aqoihi2n8ty8.cloudfront.net/actions/"],
+  .bttv-hide-bits img.chat-line__message--emote[src^="https://d3aqoihi2n8ty8.cloudfront.net/partner-actions/"],
+  .bttv-hide-bits .chat-badge[alt~="cheer"] {
+    display: none !important;
+  }
+
+.bttv-hide-chat-clips .chat-card__link {
+    display: none !important;
+  }
+
+.bttv-hide-community-highlights {
+  display: none;
+}
+
+.bttv-hide-friends .online-friends, .bttv-hide-friends .recommended-friends {
+    display: none !important;
+  }
+
+.bttv-hide-prime-promotions .top-nav__prime {
+    display: none;
+  }
+  .bttv-hide-prime-promotions [data-test-selector="test_selector_prime_tracking_button_wrapper"] [data-a-target="blue-bar"] {
+    display: none;
+  }
+
+.bttv-hide-featured-channels {
+  display: none !important;
+}
+
+.bttv-hide-recommended-friends .recommended-friends {
+    display: none;
+  }
+
+.bttv-hide-followed-offline {
+  display: none !important;
+}
+
+.bttv-host-button {
+  background: #efeef1 !important;
+  margin-bottom: 10px;
+}
+
+.tw-root--theme-dark .bttv-host-button {
+  background: #433f4a !important;
+}
+
+#bttvSettingsPanel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -250px;
+  margin-left: -400px;
+  color: #d3d3d3;
+  width: 800px;
+  height: 500px;
+  z-index: 9002;
+  border-radius: 3px;
+  border: 1px solid #000000;
+  background-color: #1e1e1e;
+  box-shadow: -1px 0 0 rgba(0,0,0, 0.3), -2px 0 0 rgba(0,0,0, 0.2), -3px 0 0 rgba(0,0,0, 0.1),
+              1px 0 0 rgba(0,0,0, 0.3), 2px 0 0 rgba(0,0,0, 0.2), 3px 0 0 rgba(0,0,0, 0.1),
+              0 -1px 0 rgba(0,0,0, 0.3), 0 -2px 0 rgba(0,0,0, 0.2), 0 -3px 0 rgba(0,0,0, 0.1),
+              0 1px 0 rgba(0,0,0, 0.3), 0 2px 0 rgba(0,0,0, 0.2), 0 3px 0 rgba(0,0,0, 0.1);
+}
+
+  #bttvSettingsPanel h1 {
+    font-size: 20px;
+    color: #d3d3d3;
+  }
+
+  #bttvSettingsPanel h2 {
+    font-size: 16px;
+  }
+
+  #bttvSettingsPanel #header {
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    background-color: #282828;
+    width: 100%;
+    border-bottom: 1px solid #111111;
+    line-height: 42px;
+  }
+
+  #bttvSettingsPanel #footer {
+    color: #777777;
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+    background-color: #282828;
+    bottom: 0px;
+    position: absolute;
+    width: calc(100% - 10px);
+    padding: 5px;
+    border-top: 1px solid #111111;
+    box-sizing: content-box;
+    z-index: inherit;
+  }
+
+  #bttvSettingsPanel #footer a {
+      color: #ff0000;
+      opacity: 0.7;
+      font-weight: bold;
+    }
+
+  #bttvSettingsPanel #logo {
+    padding: 10px;
+    vertical-align: bottom;
+    text-shadow: 1px 1px 3px #000000;
+    font-size: 25px;
+    font-family: "Korolev-Bold","HelveticaNeue-CondensedBold","ArialNarrow-Bold","Helvetica Neue",Helvetica,Arial,sans-serif;
+  }
+
+  #bttvSettingsPanel #close {
+    font-size: 30px;
+    vertical-align: center;
+    float: right;
+    right: 20px;
+    top: 0px;
+    position: absolute;
+    color: #ffffff;
+    text-shadow: 0 1px 0 #000000;
+    opacity: 0.2;
+    filter: alpha(opacity=20)
+  }
+
+  #bttvSettingsPanel #close:hover, #bttvSettingsPanel #close:focus {
+      color: #ffffff;
+      text-decoration: none;
+      cursor: pointer;
+      opacity: 0.4;
+      filter: alpha(opacity=40);
+    }
+
+  #bttvSettingsPanel #bttvSettings {
+    font: 12px "Helvetica Neue",Helvetica,Arial,sans-serif;
+    overflow-y: scroll;
+    height: 425px;
+  }
+
+  #bttvSettingsPanel #bttvSettings div {
+      box-sizing: content-box;
+    }
+
+  #bttvSettingsPanel #bttvSettings h2 {
+      box-sizing: content-box;
+      margin: 0px;
+    }
+
+  #bttvSettingsPanel #bttvSettingsSearch {
+    background: url(https://cdn.betterttv.net/assets/icons/bttv_settings_search.png) no-repeat 10px center;
+    outline: none;
+    border: none;
+    padding-left: 40px !important;
+    font-size: 14px;
+    width: 100%;
+  }
+
+  #bttvSettingsPanel .option {
+    position: relative;
+    color: #999;
+    line-height: 30px;
+    width: calc(100% - 20px);
+    background-color: rgb(30, 30, 30);
+    border-bottom: 1px solid rgb(0, 0, 0) !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    padding-top: 3px !important;
+    padding-bottom: 2px !important;
+    box-shadow: 0px 1px 0px rgba(255,255,255, 0.04) inset !important;
+  }
+
+  #bttvSettingsPanel .option a {
+      color: #d3d3d3;
+    }
+
+  #bttvSettingsPanel .option:nth-child(2n) {
+      background-color: rgb(35, 35, 35);
+    }
+
+  #bttvSettingsPanel .nav {
+    list-style: none;
+    display: inline-block;
+    margin: 0 10px 0 0;
+    vertical-align: middle
+  }
+
+  #bttvSettingsPanel .nav> li {
+      float: left;
+      line-height: 18px
+    }
+
+  #bttvSettingsPanel .nav> li> a {
+        padding-bottom: 9px;
+        padding-left: 15px;
+        padding-right: 15px;
+        color: #adafae;
+        text-shadow: 0 -1px 0 rgba(0,0,0, 0.25);
+        text-decoration: none;
+        box-shadow: none;
+        font-family: "Korolev-Bold","HelveticaNeue-CondensedBold","ArialNarrow-Bold","Helvetica Neue",Helvetica,Arial,sans-serif;
+        font-size: 18px;
+        font-weight: normal
+      }
+
+  #bttvSettingsPanel .nav> li> a:hover {
+          border-bottom: 1px solid #ff0000;
+          color: #d3d3d3;
+        }
+
+  #bttvSettingsPanel .nav> li.active a {
+        border-bottom: 1px solid #ff0000;
+        color: #d3d3d3;
+      }
+
+  #bttvSettingsPanel #bttvAbout .aboutHalf {
+    width: calc(50% - 24px);
+    display: inline-block;
+    float: left;
+    background-color: rgb(35, 35, 35);
+    border-radius: 3px;
+    margin: 12px;
+    padding: 5px;
+    text-align: center;
+    height: 395px;
+  }
+
+  #bttvSettingsPanel #bttvAbout .aboutHalf a {
+      color: #888888;
+    }
+
+  #bttvSettingsPanel #bttvAbout .aboutHalf p {
+      text-align: left;
+      text-indent: 18px;
+    }
+
+  #bttvSettingsPanel #bttvAbout .aboutHalf .bttvAboutIcon {
+      margin-top: 90px;
+    }
+
+  #bttvSettingsPanel #bttvPrivacy {
+    padding: 25px;
+    overflow-y: scroll;
+    height: 425px;
+  }
+
+  #bttvSettingsPanel #bttvPrivacy ul, #bttvSettingsPanel #bttvPrivacy ul {
+      padding-left: 10px;
+    }
+
+  #bttvSettingsPanel #bttvPrivacy strong {
+      margin-left: -5px;
+    }
+
+  #bttvSettingsPanel #bttvPrivacy p {
+      padding-left: 10px;
+      padding-top: 10px;
+    }
+
+  #bttvSettingsPanel #bttvChangelog {
+    padding: 25px;
+    height: 425px;
+    overflow-y: scroll;
+  }
+
+  #bttvSettingsPanel #bttvChangelog h2 {
+      margin-top: 20px;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+  #bttvSettingsPanel #bttvBackup {
+    padding: 25px;
+    overflow-y: scroll;
+    height: 425px;
+  }
+
+.bttvSettingsDropDown {
+  color: inherit
+}
+
+.bttvSettingsDropDown:hover {
+    color: inherit;
+    text-decoration: none;
+    background-color: var(--color-background-interactable-hover);
+  }
+
+.bttvSettingsDropDown .bttvSettingsIconContainer {
+    width: 18px;
+    height: 18px;
+  }
+
+.bttvSettingsDropDown .bttvSettingsIconDropDown {
+    width: 18px;
+    height: 18px;
+    filter: grayscale(100%) brightness(0%);
+    background: url(https://cdn.betterttv.net/assets/icons/bttv_settings.png) no-repeat 0 0px;
+  }
+
+.tw-root--theme-dark .bttvSettingsIconDropDown {
+    filter: grayscale(100%) brightness(400%);
+  }
+
+.bttv-switch {
+  position: absolute;
+  right: 7px;
+  top: 4px;
+  height: 26px;
+  width: 120px;
+  background: rgba(0,0,0, 0.25);
+  border-radius: 3px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0, 0.3), 0 1px rgba(255,255,255, 0.1);
+}
+
+.bttv-switch-label {
+  position: relative;
+  z-index: 2;
+  float: left;
+  width: 58px;
+  line-height: 26px;
+  font-size: 11px;
+  color: rgba(255,255,255, 0.35);
+  text-align: center;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none
+}
+
+.bttv-switch-label:active {
+    font-weight: bold;
+  }
+
+.bttv-switch-label-off {
+  padding-left: 2px;
+}
+
+.bttv-switch-label-on {
+  padding-right: 2px;
+}
+
+.bttv-switch-input {
+  display: none
+}
+
+.bttv-switch-input:checked + .bttv-switch-label-on {
+    font-weight: bold;
+    color: rgba(0, 0, 0, 0.65);
+    text-shadow: 0 1px rgba(255,255,255, 0.25);
+    transition: 0.15s ease-out;
+  }
+
+.bttv-switch-input:checked + .bttv-switch-label-off {
+    font-weight: bold;
+    color: #d3d3d3;
+    text-shadow: 0 1px rgba(0,0,0, 0.25);
+    transition: 0.15s ease-out;
+  }
+
+.bttv-switch-input:checked + .bttv-switch-label-on ~ .bttv-switch-selection {
+    left: 60px;
+  }
+
+.bttv-switch-input:checked + .bttv-switch-label-off ~ .bttv-switch-selection {
+    background: #111111;
+    box-shadow: none;
+  }
+
+.bttv-switch-selection {
+  display: block;
+  position: absolute;
+  z-index: 1;
+  top: 2px;
+  left: 2px;
+  width: 58px;
+  height: 22px;
+  background: #65bd63;
+  border-radius: 3px;
+  background-image: linear-gradient(to bottom, #c54e4e, #ab2525);
+  box-shadow: inset 0 1px rgba(255,255,255, 0.5), 0 0 2px rgba(0,0,0, 0.2);
+  transition: left 0.15s ease-out;
+}
+
+.bttv-switch-off {
+  color: #d3d3d3;
+}
+
+.chat-line__message.bttv-split-chat-alt-bg, .vod-message.bttv-split-chat-alt-bg {
+  background-color: #dcdcdc;
+}
+
+.tw-root--theme-dark .chat-line__message.bttv-split-chat-alt-bg, .tw-root--theme-dark .vod-message.bttv-split-chat-alt-bg {
+    background-color: #1f1925;
+  }
+
+.bttv-hide-player-extensions .extensions-dock__layout, .bttv-hide-player-extensions .extensions-video-overlay-size-container, .bttv-hide-player-extensions .extensions-notifications, .bttv-hide-player-extensions .extension-container, .bttv-hide-player-extensions .extension-taskbar {
+    display: none !important;
+  }
+
+.bttv-hide-player-cursor div[data-test-selector="video-player__video-container"] {
+    cursor: none;
+  }
+
+#bttv-picture-in-picture svg {
+  fill: currentColor;
+}

@@ -1,0 +1,70 @@
+@font-face {
+    font-family: 'Montserrat';
+    src: url('./fonts/Montserrat-Regular.woff2');
+    font-weight: 400;
+}
+@font-face {
+    font-family: 'Montserrat';
+    src: url('./fonts/Montserrat-Medium.woff2');
+    font-weight: 500;
+}
+@font-face {
+    font-family: 'Montserrat';
+    src: url('./fonts/Montserrat-Bold.woff2');
+    font-weight: 700;
+}
+@font-face {
+    font-family: 'Montserrat';
+    src: url('./fonts/Montserrat-Black.woff2');
+    font-weight: 900;
+}
+
+@font-face {
+    font-family: 'Kanit';
+    src: url('./fonts/Kanit-SemiBold.woff2');
+    font-weight: 600;
+}
+
+@font-face {
+    font-family: 'RobotoCondensed';
+    src: url('./fonts/RobotoCondensed-Regular.woff2');
+    font-weight: 400;
+}
+/* 
+Kanit 600
+Montserrat 700
+Roboto Condensed 
+*/
+
+html, body {
+    padding: 0;
+    margin: 0;
+    font-family: 'Montserrat';
+}
+
+body * {
+    box-sizing: border-box;
+    margin: 0;
+    font-family: 'Montserrat';
+    user-select: none;
+}
+
+/* Custom Scroll bar */
+::-webkit-scrollbar {
+    width: 13px;
+  }
+  
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: #1a1a1a; 
+  }
+  
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: #555; 
+  }
+  
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #444; 
+  }

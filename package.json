@@ -1,0 +1,89 @@
+{
+  "name": "stream-luv",
+  "productName": "StreamLuv",
+  "version": "0.7.0",
+  "description": "Desktop app for supporting your favorite streamers.",
+  "main": "app/main.js",
+  "scripts": {
+    "test": "jest",
+    "start": "concurrently \"npm:svelte-dev\" \"electron-forge start\"",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "publish": "electron-forge publish",
+    "lint": "echo \"No linting configured\"",
+    "svelte-build": "rollup -c",
+    "svelte-dev": "rollup -c -w",
+    "svelte-start": "sirv public"
+  },
+  "keywords": [],
+  "author": "Klassy Kat",
+  "license": "MIT",
+  "config": {
+    "forge": {
+      "packagerConfig": {},
+      "makers": [
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "streamluv",
+            "iconUrl": "https://raw.githubusercontent.com/KlassyKat/Stream-Luv/master/buildResources/icon.ico",
+            "setupIcon": "./app/build_resources/icon.ico",
+            "loadingGif": "./app/build_resources/loadingGif.gif"
+          }
+        },
+        {
+          "name": "@electron-forge/maker-zip",
+          "platforms": [
+            "darwin"
+          ]
+        },
+        {
+          "name": "@electron-forge/maker-deb",
+          "config": {}
+        },
+        {
+          "name": "@electron-forge/maker-rpm",
+          "config": {}
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "axios": "^0.21.1",
+    "electron-context-menu": "^2.5.0",
+    "electron-reload": "^1.5.0",
+    "electron-squirrel-startup": "^1.0.0",
+    "electron-store": "^7.0.2",
+    "electron-window-state": "^5.0.3",
+    "fuzzysort": "^1.1.4",
+    "sirv-cli": "^1.0.11",
+    "sortablejs": "^1.13.0",
+    "node-fetch": "2.6.1"
+  },
+  "devDependencies": {
+    "@electron-forge/cli": "^6.0.0-beta.54",
+    "@electron-forge/maker-deb": "^6.0.0-beta.54",
+    "@electron-forge/maker-rpm": "^6.0.0-beta.54",
+    "@electron-forge/maker-squirrel": "^6.0.0-beta.54",
+    "@electron-forge/maker-zip": "^6.0.0-beta.54",
+    "@rollup/plugin-alias": "^3.1.2",
+    "@rollup/plugin-commonjs": "^17.1.0",
+    "@rollup/plugin-node-resolve": "^11.2.0",
+    "@rollup/plugin-typescript": "^8.2.0",
+    "@types/jest": "^26.0.20",
+    "@types/node": "^14.14.34",
+    "concurrently": "^6.0.0",
+    "electron": "^12.0.1",
+    "jest": "^25.5.4",
+    "node-sass": "^5.0.0",
+    "rollup": "^2.41.2",
+    "rollup-plugin-livereload": "^2.0.0",
+    "rollup-plugin-postcss": "^3.1.8",
+    "rollup-plugin-svelte": "^7.1.0",
+    "rollup-plugin-terser": "^7.0.2",
+    "svelte": "^3.35.0",
+    "svelte-preprocess": "^4.6.9",
+    "ts-jest": "^25.5.1",
+    "typescript": "^3.9.9"
+  }
+}
