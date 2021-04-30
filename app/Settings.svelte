@@ -57,6 +57,8 @@
         width: 100%;
         grid-template-columns: auto 1fr 36px 36px;
         align-items: center;
+        background-color: #272727;
+        box-shadow: 0 3px 5px #00000088;
     }
 
     .twitch-actions {
@@ -127,7 +129,7 @@
         display: flex;
         overflow-y: scroll;
         overflow-x: hidden;
-        height: 70vh;
+        height: calc(100vh - 68px);
         color: white;
         flex-direction: column;
     }
@@ -216,12 +218,22 @@
         } }
         on:newsetting={changeSettings}/>
 
+        <!-- Auto Open App -->
+        <SettingHeader
+        title={'Live Stream Section'}
+        descr={'Display a group of only live streams.'}/>
+        <ToggleSetting 
+        setting={ {name: 'livestreamsection', value: settings.livestreamsection} } 
+        on:newsetting={changeSettings}/>
+
+        <!-- Auto Open App -->
         <SettingHeader
         title={'Open on Startup'}
         descr={'When your computer starts so does StreamLuv.'}/>
         <ToggleSetting 
-        setting={ {name: '', value: false} } 
+        setting={ {name: 'openonstartup', value: settings.openonstartup} } 
         on:newsetting={changeSettings}/>
+
         <!-- Start Streams Muted -->
         <SettingHeader
         title={'Start Streams Muted'}

@@ -4,6 +4,7 @@ import resolve from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import postcss from 'rollup-plugin-postcss'
 import livereload from 'rollup-plugin-livereload'
+import json from '@rollup/plugin-json'
 import {
   terser
 } from 'rollup-plugin-terser'
@@ -343,6 +344,21 @@ export default [
       clearScreen: false
     }
   },
+  {
+    input: 'app/main.ts',
+    output: {
+      sourcemap: true,
+      format: 'cjs',
+      name: 'app',
+      file: 'app/bundle.js'
+    },
+    plugins: [
+      resolve(),
+      commonjs(),
+      typescript(),
+      json()
+    ]
+  }
 ]
 
 function serve() {

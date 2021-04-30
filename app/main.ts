@@ -1,4 +1,4 @@
-const {
+import {
 	app,
 	BrowserWindow,
 	Tray,
@@ -8,23 +8,30 @@ const {
 	session,
 	shell,
 	globalShortcut
-} = require('electron');
+} from 'electron';
+//@ts-ignore
+const fetch = require('node-fetch');
 const path = require('path');
-const Store = require('electron-store');
-const store = new Store();
+
+import { Stream as StreamObj, Settings, OpenType } from "./types/types";
+import Store from 'electron-store';
+
+interface StoreData {
+	streamers: Map<string, StreamObj>,
+	settings: Settings
+}
+const store = new Store<StoreData>();
 
 const AutoLaunch = require('auto-launch');
 const appAutoLauncher = new AutoLaunch({
 	name: 'StreamLuv'
 });
 
-const fetch = require('node-fetch');
 const fs = require('fs');
 
 
 const windowStateKeeper = require('electron-window-state');
 const contextMenu = require('electron-context-menu');
-// const { globalShortcut } = require('electron/main');
 
 // Live Reload
 require('electron-reload')(__dirname, {
@@ -97,6 +104,9 @@ const createWindow = () => {
 
 
 class AppTray {
+    tray: Tray;
+    checked: boolean;
+    trayMenu: Menu;
 	constructor() {
 		this.tray = new Tray(iconPath);
 		let template = [{
@@ -124,6 +134,7 @@ class AppTray {
 			}
 		}];
 
+		//@ts-ignore
 		this.trayMenu = Menu.buildFromTemplate(template);
 		this.tray.setContextMenu(this.trayMenu);
 		this.tray.setToolTip('StreamLuv');
@@ -189,28 +200,29 @@ ipcMain.on("open-add-window", () => {
 	// addWindow.webContents.openDevTools();
 });
 
-ipcMain.on('add-stream', (e, data) => {
+ipcMain.on('add-stream', (e, data: StreamObj) => {
 	sendStreams(data);
 });
 
-ipcMain.on('remove-stream', (e, data) => {
+ipcMain.on('remove-stream', (e, data: string) => {
 	let streamers = store.get("streamers");
 	delete streamers[data];
 	store.set("streamers", streamers);
 });
 
-function sendStreams(stream = null) {
-	let streamers = store.get("streamers") || {};
+function sendStreams(stream: StreamObj = null) {
+	let streamers = store.get("streamers") || new Map();
 	if(stream) {
 		streamers[stream.id] = stream;
 	}
 	store.set("streamers", streamers);
 	mainWindow.webContents.send('streams', streamers);
 }
+
 ipcMain.on('sort-streams', (e, data) => {
 	sortStreams(data);
 })
-function sortStreams(order) {
+function sortStreams(order: string[]) {
 	let streamers = store.get("streamers");
 	let newStreamers = {};
 	for(let stream of order) {
@@ -298,6 +310,13 @@ function setLoginName() {
 //Stream Window
 let focusList = []; //Array of most recntly focused windows
 class Stream {
+    name: string;
+    history: string[];
+    window: BrowserWindow;
+    view: BrowserView;
+    autoclose: any;
+    autoCloseModal: BrowserWindow;
+
 	constructor(name) {
 		this.name = name;
 		this.history = [name];
@@ -328,7 +347,7 @@ class Stream {
 			width: window.getSize()[0],
 			height: window.getSize()[1] -32
 		});
-		view.webContents.setAudioMuted(store.get("settings.startmuted"));
+		view.webContents.setAudioMuted(<boolean> store.get("settings.startmuted"));
 		view.webContents.loadURL(`https://www.twitch.tv/${this.name}`);
 		
 		//Remap ctrl r to reload twitch instead of window
@@ -386,11 +405,11 @@ class Stream {
 
 		//Create Event Handlers
 		//Navigaton Outside of twitch opens in external browser
-		view.webContents.on('did-navigate-in-page', (e, url) => {
+		view.webContents.on('did-navigate-in-page', (e, url: string) => {
 			console.log('Navigate in page');
 			let nameStart = url.indexOf('/', 16);
 			let nameEnd = url.lastIndexOf('?');
-			let streamName;
+			let streamName: string;
 			if(nameEnd > -1) {
 				streamName = url.slice(nameStart + 1, nameEnd);
 			} else {
@@ -403,23 +422,20 @@ class Stream {
 				streamName = decodeURIComponent(streamName);
 				console.log(streamName);
 				try {
-					let oldName = window.getTitle();
+					let oldName: string = window.getTitle();
 					if(streamName == oldName) {
 						return;
 					}
-					streamWindows[streamName] = streamWindows[oldName];
-					delete streamWindows[oldName];
-					streamWindows[streamName].name = streamName;
-					streamWindows[streamName].history.push(streamName);
+                    streamWindows.set(streamName, streamWindows.get(oldName));
+                    streamWindows.delete(oldName);
+                    streamWindows.get(streamName).name = streamName;
+                    streamWindows.get(streamName).history.push(streamName);
+
 					let focusIndex = focusList.indexOf(oldName);
 					focusList.splice(focusIndex, 1, streamName);
 					window.setTitle(streamName);
-					console.log(focusList);
 
 					window.webContents.send('change-title', streamName);
-
-					console.log(streamWindows);
-					console.log(focusIndex);
 				} catch(err) {
 					return;
 				}
@@ -496,9 +512,8 @@ class Stream {
 				return item;
 			}
 		});
-		this.view.webContents?.destroy();
 		this.window.destroy();
-		delete streamWindows[this.name];
+        streamWindows.delete(this.name);
 	}
 
 	startAutoClose() {
@@ -540,12 +555,12 @@ class Stream {
 	}
 }
 
-let streamWindows = {};
+let streamWindows: Map<string, Stream> = new Map();
 ipcMain.on('open-stream', (e, {name, method}) => {
-	for(let stream in streamWindows) {
-		if(name == stream && method != 'browser') {
-			streamWindows[name].window.focus();
-			store.set(`streamers.${name}.streamopen`, true); //redundancy
+	for(let [key, stream] of streamWindows) {
+		if(name == key && method != 'browser') {
+			streamWindows.get(key).window.focus();
+			store.set(`streamers.${key}.streamopen`, true); //redundancy
 			return;
 		}
 	}
@@ -570,30 +585,27 @@ ipcMain.on('open-stream', (e, {name, method}) => {
 			return;
 		}
 	}
-	streamWindows[name] = new Stream(name);
-	streamWindows[name].addToFocusList(name);
-	streamWindows[name].init();
-	// streamWindows[name].devTools();
+    streamWindows.set(name, new Stream(name));
+    streamWindows.get(name).addToFocusList(name);
+    streamWindows.get(name).init();
+	// streamWindows.get(name).devTools();
 	sendStreams();
-
 });
 
 
 ipcMain.on('close-stream', (e, id) => { //errors and loops error
 	try {
-		streamWindows[id].closeStream();
+		streamWindows.get(id).closeStream();
 	} catch (err) {
 		console.log('cannont close', id);
 	}
 });
 
 ipcMain.on('auto-close-stream', (e, name) => {
-	console.log('autoclose:' + name);
-	for(stream in streamWindows) {
-		console.log(stream);
-		stream = streamWindows[stream];
-		console.log(stream);
-		if(stream?.history.includes(name)) {
+	for(let [key, stream] of streamWindows) {
+		console.log("Autoclose:", key);
+        console.log("Window History:", stream?.history);
+		if(stream?.history.includes(key)) {
 			stream.openAutoClose();
 			return;
 		}
@@ -602,10 +614,9 @@ ipcMain.on('auto-close-stream', (e, name) => {
 
 ipcMain.on('cancel-auto-close', (e, name) => {
 	console.log(name);
-	for(let stream in streamWindows) {
-		stream = streamWindows[stream];
+	for(let [key, stream] of streamWindows) {
 		if(stream?.name == name) {
-			console.log(stream);
+			console.log(key);
 			stream.cancelAutoClose();
 		}
 	}
@@ -622,11 +633,11 @@ ipcMain.on('save-streamers', (e, streamers) => {
 
 //Settings page
 function getSettings() {
-	let settings = store.get("settings") || {
+	let settings: Settings = store.get("settings") || {
 		login: "",
 		startmuted: false,
-		linktype: "streamluv",
-		autoopentype: "streamluv",
+		linktype: OpenType.streamluv,
+		autoopentype: OpenType.streamluv,
 		pause: false,
 		muteshortcut: [],
 		bttv: true,
@@ -638,7 +649,7 @@ function getSettings() {
 	return settings;
 }
 
-function saveSettings(settings) {
+function saveSettings(settings: Settings) {
 	let oldSettings = getSettings();
 	store.set("settings", settings);
 	if(oldSettings.muteshortcut != settings.muteshortcut) {
@@ -650,11 +661,21 @@ function saveSettings(settings) {
 }
 
 let shortcutList = {};
-class GlobalShortcut {
+class Shortcut {
+    name: string;
+    shortcut: string;
+    action: () => void;
+
 	constructor(name, shortcut, action) {
 		this.name = name;
 		this.shortcut = shortcut.join('+');
 		this.action = action;
+	}
+}
+
+class GlobalShortcut extends Shortcut {
+	constructor(name, shortcut, action) {
+		super(name, shortcut, action);
 	}
 
 	register() {
@@ -663,21 +684,20 @@ class GlobalShortcut {
 }
 
 function registerShortcuts() {
-	let shortcuts = [
+	let shortcuts: Shortcut[] = [
 		{
 			name: 'muteshortcut',
 			shortcut: store.get('settings.muteshortcut'),
 			action: () => {
-				let muteState = streamWindows[focusList[0]].view.webContents.isAudioMuted();
+				let muteState = streamWindows.get(focusList[0]).view.webContents.isAudioMuted();
 				if(muteState) {
-					for(let stream in streamWindows) {
-						stream = streamWindows[stream];
+					for(let [key, stream] of streamWindows) {
 						if(!stream.view.webContents.isAudioMuted()) {
 							stream.window.webContents.send('toggle-mute');
 						}
 					}
 				}
-				streamWindows[focusList[0]].window.webContents.send('toggle-mute');
+				streamWindows.get(focusList[0]).window.webContents.send('toggle-mute');
 			}
 		},
 		{
@@ -685,14 +705,14 @@ function registerShortcuts() {
 			shortcut: store.get('settings.cycleshortcut'),
 			action: () => {
 				let focusItem = focusList[focusList.length-1];
-				streamWindows[focusItem].window.focus();
+				streamWindows.get(focusItem).window.focus();
 			}
 		}
 	]
 	globalShortcut.unregisterAll();
 	for(let item of shortcuts) {
 		let {name, shortcut, action} = item;
-		if(!shortcut.length > 0) {
+		if(shortcut.length <= 0) {
 			return;
 		}
 		shortcutList[name] = new GlobalShortcut(name, shortcut, action);
@@ -700,7 +720,7 @@ function registerShortcuts() {
 	}
 };
 
-function setOpenOnStartUp(val) {
+function setOpenOnStartUp(val: boolean) {
 	if(val) {
 		appAutoLauncher.enable();
 	} else {
@@ -722,7 +742,7 @@ ipcMain.on('get-pause', () => {
 
 
 
-let settingWindow
+let settingWindow: BrowserWindow;
 ipcMain.on("open-settings", () => {
 	settingWindow = new BrowserWindow({
 		webPreferences: {
@@ -740,6 +760,7 @@ ipcMain.on("open-settings", () => {
 		parent: mainWindow,
 		show: false
 	});
+
 
 	settingWindow.loadFile(`${__dirname}/../public/settings.html`);
 	settingWindow.on('ready-to-show', () => {

@@ -44,5 +44,7 @@ export interface Settings {
     muteshortcut: string[],
     bttv: boolean,
     autoclose: boolean,
-    cycleshortcut: string[]
+    cycleshortcut: string[],
+    openonstartup: boolean,
+    livestreamsection: boolean
 }

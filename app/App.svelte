@@ -32,7 +32,7 @@
 		console.log(login);
 	});
 
-	let streamers: Stream[] = [];
+	let streamers: Map<string, Stream> = new Map();
 	// Rearrange Tile Functionality
 	function createTileSort(el) {
 		new Sortable(el, {
@@ -51,22 +51,27 @@
 		//Authentication
 	let loggedIn = null;
 	let apiErrors;
-	remote.session.defaultSession.cookies.get({}).then(cookies => {
-		for(let cookie of cookies) {
-			if (cookie.name == "name") {
-				loggedIn = cookie;
-				return;
-			} else {
-				loggedIn = null;
+	getCookies();
+	function getCookies() {
+		remote.session.defaultSession.cookies.get({}).then(cookies => {
+			for(let cookie of cookies) {
+				if (cookie.name == "name") {
+					loggedIn = cookie;
+					return;
+				} else {
+					loggedIn = null;
+				}
 			}
-		}
-	});
+		});
+	}
+	
 	let isAuthenticated = localStorage.getItem("access_token");
 	function login(hidden = false) {
 		ipcRenderer.send("open-login", hidden);
 	}
 	ipcRenderer.on("authenticated", () => {
 		isAuthenticated = localStorage.getItem("access_token");
+		getCookies();
 		console.log(isAuthenticated);
 		checkLive();
 	});
@@ -76,8 +81,8 @@
 	function checkLive () {
 		let calls = [];
 		clearInterval(liveCheckTimeout);
-		for(let id of streamers.map(stream => stream.id)) {
-			let call = axios.get(`https://api.twitch.tv/helix/streams?user_login=${id}`, {
+		for(let [key, stream] of streamers) {
+			let call = axios.get(`https://api.twitch.tv/helix/streams?user_login=${key}`, {
 				headers: {
 					'Content-Type': 'application/json',
 					'Authorization': `Bearer ${localStorage.getItem("access_token")}`,
@@ -94,27 +99,26 @@
 						liveStreams.push(stream.user_login);
 					}
 				}
-				for(let streamer of streamers) {
-					if(liveStreams.includes(streamer.id)) {
+				for(let [key, streamer] of streamers) {
+					if(liveStreams.includes(key)) {
 						streamer.live = true;
 						if(streamer.autoopen && !streamer.streamopen) {
 							openStream({
-								id: streamer.id,
+								id: key,
 								type: "auto"
 							})
 						}
 					} else {
 						if(streamer.streamopen == true) {
-							console.log('set stream off');
-							setTimeout(setStreamOpenFalse, 300000, streamer.id);
-							startAutoClose(streamer.id);
+							setTimeout(setStreamOpenFalse, 300000, key);
+							startAutoClose(key);
 						}
 						streamer.live = false;
 					}
 				}
 				//Make svelte update
 				apiErrors = false;
-				streamers = [...streamers];
+				streamers = streamers;
 			}).catch((err) => {
 				if(err.response.status == 401) {
 					apiErrors = true;
@@ -141,12 +145,12 @@
 	}
 	function toggleAutoOpen(data) {
 		let {id, value} = data.detail;
-		for(let streamer of streamers) {
-			if(streamer.id == id) {
+		for(let [key, streamer] of streamers) {
+			if(key == id) {
 				streamer.autoopen = value;
 				if(value && streamer.live && !streamer.streamopen) {
 					console.log('try open');
-					openStream({id: streamer.id, type: "auto"});
+					openStream({id: key, type: "auto"});
 				}
 			}
 		}
@@ -156,19 +160,19 @@
 
 	function toggleAutoCollect(data) {
 		let {id, value} = data.detail;
-		for(let stream of streamers) {
-			if(stream.id == id) {
+		for(let [key, stream] of streamers) {
+			if(key == id) {
 				stream.autocollect = value;
 			}
 		}
-		streamers = [...streamers];
+		streamers = streamers;
 		saveStreamers();
 		addMessage(`Collecting ${id}`);
 	}
 
 	function setStreamOpenFalse(name) {
-		for(let streamer of streamers) {
-			if(streamer.id == name) {
+		for(let [key, streamer] of streamers) {
+			if(key == name) {
 				streamer.streamopen = false;
 			}
 		}
@@ -247,20 +251,20 @@
 	
 
 	ipcRenderer.on("streams", (e, data) => {
-		streamers = [];
+		streamers.clear();
 		for(let stream in data) {
 			let newStream = <Stream> data[stream];
-			streamers = [...streamers, newStream];
+			streamers.set(newStream.id, newStream);
 		}
 		console.log(streamers);
 		checkLive();
 	});
 
 	function removeStream(name: string) {
-		for(let stream in streamers) {
-			if(streamers[stream].id == name) {
-				streamers.splice(parseInt(stream), 1);
-				streamers = [...streamers];
+		for(let [key, stream] of streamers) {
+			if(key == name) {
+				streamers.delete(key);
+				streamers = streamers;
 				//Save streamers
 				ipcRenderer.send("remove-stream", name);
 				return;
@@ -480,7 +484,7 @@
 	<Message messages={messages}/>
 	<div id="stream-tile-wrapper">
 		<ul class="tile-list">
-			{#each streamers as stream}
+			{#each Array.from(streamers) as [key, stream]}
 			{#if stream.live}
 			<StreamTile stream={stream} on:menu="{tileMenu}" on:open="{nameClick}" on:toggle-auto-open="{toggleAutoOpen}"
 			on:toggle-auto-collect="{toggleAutoCollect}" switchOn={false}/>
@@ -489,7 +493,7 @@
 		</ul>
 		<br>
 		<ul class="tile-list" use:createTileSort>
-			{#each streamers as stream}
+			{#each Array.from(streamers) as [key, stream]}
 			<StreamTile stream={stream} on:menu="{tileMenu}" on:open="{nameClick}" on:toggle-auto-open="{toggleAutoOpen}"
 			on:toggle-auto-collect="{toggleAutoCollect}"/>
 			{/each}
