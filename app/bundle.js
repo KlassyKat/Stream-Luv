@@ -1,7 +1,8 @@
 'use strict';
 
-var fs$1 = require('fs');
+var require$$0 = require('electron');
 var path$1 = require('path');
+var fs$1 = require('fs');
 var crypto = require('crypto');
 var assert = require('assert');
 var events_1 = require('events');
@@ -10,29 +11,14 @@ var os = require('os');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
-var fs__default = /*#__PURE__*/_interopDefaultLegacy(fs$1);
+var require$$0__default = /*#__PURE__*/_interopDefaultLegacy(require$$0);
 var path__default = /*#__PURE__*/_interopDefaultLegacy(path$1);
+var fs__default = /*#__PURE__*/_interopDefaultLegacy(fs$1);
 var crypto__default = /*#__PURE__*/_interopDefaultLegacy(crypto);
 var assert__default = /*#__PURE__*/_interopDefaultLegacy(assert);
 var events_1__default = /*#__PURE__*/_interopDefaultLegacy(events_1);
 var util_1__default = /*#__PURE__*/_interopDefaultLegacy(util_1);
 var os__default = /*#__PURE__*/_interopDefaultLegacy(os);
-
-const pathFile = path__default['default'].join(__dirname, 'path.txt');
-
-function getElectronPath () {
-  if (fs__default['default'].existsSync(pathFile)) {
-    const executablePath = fs__default['default'].readFileSync(pathFile, 'utf-8');
-    if (process.env.ELECTRON_OVERRIDE_DIST_PATH) {
-      return path__default['default'].join(process.env.ELECTRON_OVERRIDE_DIST_PATH, executablePath);
-    }
-    return path__default['default'].join(__dirname, 'dist', executablePath);
-  } else {
-    throw new Error('Electron failed to install correctly, please delete node_modules/electron and try installing again');
-  }
-}
-
-var electron = getElectronPath();
 
 var OpenType;
 (function (OpenType) {
@@ -13264,7 +13250,7 @@ module.exports = Conf;
 module.exports.default = Conf;
 });
 
-const {app, ipcMain, ipcRenderer, shell} = electron;
+const {app, ipcMain, ipcRenderer, shell} = require$$0__default['default'];
 
 
 let isInitialized = false;
@@ -13363,7 +13349,7 @@ require('electron-reload')(__dirname, {
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) {
     // eslint-disable-line global-require
-    electron.app.quit();
+    require$$0.app.quit();
 }
 let mainWindow;
 let addWindow;
@@ -13380,7 +13366,7 @@ const createWindow = () => {
         defaultHeight: 600,
         defaultWidth: 1000
     });
-    mainWindow = new electron.BrowserWindow({
+    mainWindow = new require$$0.BrowserWindow({
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
@@ -13410,7 +13396,7 @@ const createWindow = () => {
 };
 class AppTray {
     constructor() {
-        this.tray = new electron.Tray(iconPath);
+        this.tray = new require$$0.Tray(iconPath);
         let template = [{
                 label: 'Open',
                 click: () => mainWindow.show()
@@ -13432,11 +13418,11 @@ class AppTray {
                 label: 'Quit StreamLuv',
                 click: () => {
                     mainWindow.destroy();
-                    electron.app.quit();
+                    require$$0.app.quit();
                 }
             }];
         //@ts-ignore
-        this.trayMenu = electron.Menu.buildFromTemplate(template);
+        this.trayMenu = require$$0.Menu.buildFromTemplate(template);
         this.tray.setContextMenu(this.trayMenu);
         this.tray.setToolTip('StreamLuv');
     }
@@ -13445,26 +13431,26 @@ class AppTray {
         this.tray.setContextMenu(this.trayMenu);
     }
 }
-electron.app.on('ready', () => {
+require$$0.app.on('ready', () => {
     saveSettings(getSettings());
     createWindow();
     tray = new AppTray();
 });
-electron.app.on('window-all-closed', () => {
+require$$0.app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
-        electron.app.quit();
+        require$$0.app.quit();
     }
 });
-electron.app.on('activate', () => {
+require$$0.app.on('activate', () => {
     // On OS X it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
-    if (electron.BrowserWindow.getAllWindows().length === 0) {
+    if (require$$0.BrowserWindow.getAllWindows().length === 0) {
         createWindow();
     }
 });
 //Add Window
-electron.ipcMain.on("open-add-window", () => {
-    addWindow = new electron.BrowserWindow({
+require$$0.ipcMain.on("open-add-window", () => {
+    addWindow = new require$$0.BrowserWindow({
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false,
@@ -13492,10 +13478,10 @@ electron.ipcMain.on("open-add-window", () => {
     });
     // addWindow.webContents.openDevTools();
 });
-electron.ipcMain.on('add-stream', (e, data) => {
+require$$0.ipcMain.on('add-stream', (e, data) => {
     sendStreams(data);
 });
-electron.ipcMain.on('remove-stream', (e, data) => {
+require$$0.ipcMain.on('remove-stream', (e, data) => {
     let streamers = store.get("streamers");
     delete streamers[data];
     store.set("streamers", streamers);
@@ -13508,7 +13494,7 @@ function sendStreams(stream = null) {
     store.set("streamers", streamers);
     mainWindow.webContents.send('streams', streamers);
 }
-electron.ipcMain.on('sort-streams', (e, data) => {
+require$$0.ipcMain.on('sort-streams', (e, data) => {
     sortStreams(data);
 });
 function sortStreams(order) {
@@ -13519,8 +13505,8 @@ function sortStreams(order) {
     }
     store.set("streamers", newStreamers);
 }
-electron.ipcMain.on("open-login", (e, hidden) => {
-    let loginWindow = new electron.BrowserWindow({
+require$$0.ipcMain.on("open-login", (e, hidden) => {
+    let loginWindow = new require$$0.BrowserWindow({
         webPreferences: {
             nodeIntegration: true,
             enableRemoteModule: true,
@@ -13537,7 +13523,7 @@ electron.ipcMain.on("open-login", (e, hidden) => {
         modal: true,
         parent: mainWindow
     });
-    let loginView = new electron.BrowserView();
+    let loginView = new require$$0.BrowserView();
     loginWindow.setBrowserView(loginView);
     loginView.setBounds({
         x: 0,
@@ -13577,7 +13563,7 @@ electron.ipcMain.on("open-login", (e, hidden) => {
     // loginWindow.webContents.openDevTools();
 });
 function setLoginName() {
-    electron.session.defaultSession.cookies.get({})
+    require$$0.session.defaultSession.cookies.get({})
         .then(cookies => {
         for (let cookie of cookies) {
             if (cookie.name == "name") {
@@ -13594,7 +13580,7 @@ class Stream {
     constructor(name) {
         this.name = name;
         this.history = [name];
-        this.window = new electron.BrowserWindow({
+        this.window = new require$$0.BrowserWindow({
             webPreferences: {
                 nodeIntegration: true,
                 enableRemoteModule: true,
@@ -13607,7 +13593,7 @@ class Stream {
             backgroundColor: "#1d1d1d",
             title: name
         });
-        this.view = new electron.BrowserView();
+        this.view = new require$$0.BrowserView();
     }
     init() {
         let window = this.window;
@@ -13639,7 +13625,7 @@ class Stream {
                 }
             }
         ];
-        let windowMenu = electron.Menu.buildFromTemplate(windowMenuTemplate);
+        let windowMenu = require$$0.Menu.buildFromTemplate(windowMenuTemplate);
         window.setMenu(windowMenu);
         window.loadFile(`${__dirname}/../public/streamWindow.html`);
         //Create context Menu
@@ -13708,7 +13694,7 @@ class Stream {
         });
         view.webContents.on('new-window', (e, url) => {
             e.preventDefault();
-            electron.shell.openExternal(url);
+            require$$0.shell.openExternal(url);
         });
         //Refresh Stream Crashes
         view.webContents.on('media-paused', () => {
@@ -13776,7 +13762,7 @@ class Stream {
         }, 305000, this);
     }
     openAutoClose() {
-        this.autoCloseModal = new electron.BrowserWindow({
+        this.autoCloseModal = new require$$0.BrowserWindow({
             webPreferences: {
                 contextIsolation: false,
                 enableRemoteModule: true,
@@ -13805,7 +13791,7 @@ class Stream {
     }
 }
 let streamWindows = new Map();
-electron.ipcMain.on('open-stream', (e, { name, method }) => {
+require$$0.ipcMain.on('open-stream', (e, { name, method }) => {
     for (let [key, stream] of streamWindows) {
         if (name == key && method != 'browser') {
             streamWindows.get(key).window.focus();
@@ -13819,19 +13805,19 @@ electron.ipcMain.on('open-stream', (e, { name, method }) => {
     }
     store.set(`streamers.${name}.streamopen`, true);
     if (method == "browser") {
-        electron.shell.openExternal("https://www.twitch.tv/" + name);
+        require$$0.shell.openExternal("https://www.twitch.tv/" + name);
         return;
     }
     sendStreams();
     if (method == "auto") {
         if (store.get("settings.autoopentype") == "browser") {
-            electron.shell.openExternal("https://www.twitch.tv/" + name);
+            require$$0.shell.openExternal("https://www.twitch.tv/" + name);
             return;
         }
     }
     else if (method == "manual") {
         if (store.get("settings.linktype") == "browser") {
-            electron.shell.openExternal("https://www.twitch.tv/" + name);
+            require$$0.shell.openExternal("https://www.twitch.tv/" + name);
             return;
         }
     }
@@ -13841,7 +13827,7 @@ electron.ipcMain.on('open-stream', (e, { name, method }) => {
     // streamWindows.get(name).devTools();
     sendStreams();
 });
-electron.ipcMain.on('close-stream', (e, id) => {
+require$$0.ipcMain.on('close-stream', (e, id) => {
     try {
         streamWindows.get(id).closeStream();
     }
@@ -13849,7 +13835,7 @@ electron.ipcMain.on('close-stream', (e, id) => {
         console.log('cannont close', id);
     }
 });
-electron.ipcMain.on('auto-close-stream', (e, name) => {
+require$$0.ipcMain.on('auto-close-stream', (e, name) => {
     for (let [key, stream] of streamWindows) {
         console.log("Autoclose:", key);
         console.log("Window History:", stream?.history);
@@ -13859,7 +13845,7 @@ electron.ipcMain.on('auto-close-stream', (e, name) => {
         }
     }
 });
-electron.ipcMain.on('cancel-auto-close', (e, name) => {
+require$$0.ipcMain.on('cancel-auto-close', (e, name) => {
     console.log(name);
     for (let [key, stream] of streamWindows) {
         if (stream?.name == name) {
@@ -13868,7 +13854,7 @@ electron.ipcMain.on('cancel-auto-close', (e, name) => {
         }
     }
 });
-electron.ipcMain.on('save-streamers', (e, streamers) => {
+require$$0.ipcMain.on('save-streamers', (e, streamers) => {
     let newStreamers = {};
     for (let streamer of streamers) {
         newStreamers[streamer.id] = streamer;
@@ -13915,7 +13901,7 @@ class GlobalShortcut extends Shortcut {
         super(name, shortcut, action);
     }
     register() {
-        electron.globalShortcut.register(this.shortcut, this.action);
+        require$$0.globalShortcut.register(this.shortcut, this.action);
     }
 }
 function registerShortcuts() {
@@ -13944,7 +13930,7 @@ function registerShortcuts() {
             }
         }
     ];
-    electron.globalShortcut.unregisterAll();
+    require$$0.globalShortcut.unregisterAll();
     for (let item of shortcuts) {
         let { name, shortcut, action } = item;
         if (shortcut.length <= 0) {
@@ -13962,17 +13948,17 @@ function setOpenOnStartUp(val) {
         appAutoLauncher.disable();
     }
 }
-electron.ipcMain.on('toggle-pause', () => {
+require$$0.ipcMain.on('toggle-pause', () => {
     store.set('settings.pause', !store.get('settings.pause'));
     tray.pauseToggle(store.get('settings.pause'));
     mainWindow.webContents.send('send-pause', store.get('settings.pause'));
 });
-electron.ipcMain.on('get-pause', () => {
+require$$0.ipcMain.on('get-pause', () => {
     mainWindow.webContents.send('send-pause', store.get('settings.pause'));
 });
 let settingWindow;
-electron.ipcMain.on("open-settings", () => {
-    settingWindow = new electron.BrowserWindow({
+require$$0.ipcMain.on("open-settings", () => {
+    settingWindow = new require$$0.BrowserWindow({
         webPreferences: {
             nodeIntegration: true,
             enableRemoteModule: true,
@@ -13996,11 +13982,11 @@ electron.ipcMain.on("open-settings", () => {
         settingWindow = null;
     });
     //Page events
-    electron.ipcMain.on('get-settings', () => {
+    require$$0.ipcMain.on('get-settings', () => {
         let settings = getSettings();
         settingWindow.webContents.send('send-settings', settings);
     });
-    electron.ipcMain.on('save-settings', (e, settings) => {
+    require$$0.ipcMain.on('save-settings', (e, settings) => {
         saveSettings(settings);
     });
     // settingWindow.webContents.openDevTools();
